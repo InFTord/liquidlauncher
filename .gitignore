@@ -171,3 +171,8 @@ Thumbs.db
 
 # Ignore swap files (Vim)
 *.swp
+
+ll_main.build
+ll_main.dist
+ll_main.onefile-build
+ll_main.bin
