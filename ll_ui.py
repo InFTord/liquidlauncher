@@ -8,26 +8,24 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
+                            QSize, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QFont, QIcon,
+                           QPalette, QPixmap)
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QApplication, QCheckBox,
-    QComboBox, QFrame, QGridLayout, QGroupBox,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QListView, QListWidget, QListWidgetItem, QMainWindow,
-    QPushButton, QRadioButton, QScrollArea, QSizePolicy,
-    QSpacerItem, QSpinBox, QSplitter, QStackedWidget,
-    QTabWidget, QTableWidget, QTableWidgetItem, QTextBrowser,
-    QTextEdit, QToolButton, QVBoxLayout, QWidget)
-import ll_rc
+from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QCheckBox,
+                               QComboBox, QFrame, QGridLayout, QGroupBox,
+                               QHBoxLayout, QLabel, QLineEdit,
+                               QListView, QListWidget, QListWidgetItem, QPushButton, QRadioButton, QScrollArea,
+                               QSizePolicy,
+                               QSpacerItem, QSpinBox, QSplitter, QStackedWidget,
+                               QTabWidget, QTableWidget, QTableWidgetItem, QTextBrowser,
+                               QTextEdit, QToolButton, QVBoxLayout, QWidget, QMainWindow)
+
 import ll_rc
 
-class Ui_MainWindow(object):
+
+class Ui_MainWindow(QMainWindow):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
@@ -41,8 +39,8 @@ class Ui_MainWindow(object):
         self.gridLayout_32.setContentsMargins(0, 0, 0, 0)
         self.MainAreaFrame = QFrame(self.centralwidget)
         self.MainAreaFrame.setObjectName(u"MainAreaFrame")
-        self.MainAreaFrame.setFrameShape(QFrame.StyledPanel)
-        self.MainAreaFrame.setFrameShadow(QFrame.Raised)
+        self.MainAreaFrame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.MainAreaFrame.setFrameShadow(QFrame.Shadow.Raised)
         self.horizontalLayout_2 = QHBoxLayout(self.MainAreaFrame)
         self.horizontalLayout_2.setSpacing(0)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -120,7 +118,7 @@ class Ui_MainWindow(object):
         self.RSSRefreshButton = QPushButton(self.NewsScrollAreaContent)
         self.RSSRefreshButton.setObjectName(u"RSSRefreshButton")
         icon = QIcon()
-        icon.addFile(u":/assets/img/icons/view-refresh.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/assets/assets/icons/view-refresh.png", QSize(), QIcon.Normal, QIcon.Off)
         self.RSSRefreshButton.setIcon(icon)
 
         self.gridLayout_7.addWidget(self.RSSRefreshButton, 0, 2, 1, 1)
@@ -129,7 +127,7 @@ class Ui_MainWindow(object):
         self.RSSViewonlineButton.setObjectName(u"RSSViewonlineButton")
         self.RSSViewonlineButton.setEnabled(False)
         icon1 = QIcon()
-        icon1.addFile(u":/assets/img/icons/globe.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u":/assets/assets/icons/globe.png", QSize(), QIcon.Normal, QIcon.Off)
         self.RSSViewonlineButton.setIcon(icon1)
 
         self.gridLayout_7.addWidget(self.RSSViewonlineButton, 3, 2, 1, 1)
@@ -147,8 +145,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.GamePageFrame = QFrame(self.GamePage)
         self.GamePageFrame.setObjectName(u"GamePageFrame")
-        self.GamePageFrame.setFrameShape(QFrame.StyledPanel)
-        self.GamePageFrame.setFrameShadow(QFrame.Raised)
+        self.GamePageFrame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.GamePageFrame.setFrameShadow(QFrame.Shadow.Raised)
         self.gridLayout_16 = QGridLayout(self.GamePageFrame)
         self.gridLayout_16.setObjectName(u"gridLayout_16")
         self.splitter = QSplitter(self.GamePageFrame)
@@ -156,14 +154,14 @@ class Ui_MainWindow(object):
         self.splitter.setOrientation(Qt.Horizontal)
         self.GamePageTabList = QListWidget(self.splitter)
         icon2 = QIcon()
-        icon2.addFile(u":/assets/img/icons/srb2mb.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon2.addFile(u":/assets/assets/icons/srb2mb.png", QSize(), QIcon.Normal, QIcon.Off)
         font = QFont()
         font.setPointSize(14)
         __qlistwidgetitem1 = QListWidgetItem(self.GamePageTabList)
         __qlistwidgetitem1.setFont(font);
         __qlistwidgetitem1.setIcon(icon2);
         icon3 = QIcon()
-        icon3.addFile(u":/assets/img/icons/gamepad.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon3.addFile(u":/assets/assets/icons/gamepad.png", QSize(), QIcon.Normal, QIcon.Off)
         font1 = QFont()
         font1.setPointSize(14)
         font1.setBold(False)
@@ -171,12 +169,12 @@ class Ui_MainWindow(object):
         __qlistwidgetitem2.setFont(font1);
         __qlistwidgetitem2.setIcon(icon3);
         icon4 = QIcon()
-        icon4.addFile(u":/assets/img/icons/list-add.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon4.addFile(u":/assets/assets/icons/list-add.png", QSize(), QIcon.Normal, QIcon.Off)
         __qlistwidgetitem3 = QListWidgetItem(self.GamePageTabList)
         __qlistwidgetitem3.setFont(font);
         __qlistwidgetitem3.setIcon(icon4);
         icon5 = QIcon()
-        icon5.addFile(u":/assets/img/icons/settings.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon5.addFile(u":/assets/assets/icons/settings.png", QSize(), QIcon.Normal, QIcon.Off)
         __qlistwidgetitem4 = QListWidgetItem(self.GamePageTabList)
         __qlistwidgetitem4.setFont(font);
         __qlistwidgetitem4.setIcon(icon5);
@@ -225,7 +223,7 @@ class Ui_MainWindow(object):
         self.PlayerSkinImage.setObjectName(u"PlayerSkinImage")
         self.PlayerSkinImage.setMaximumSize(QSize(128, 128))
         self.PlayerSkinImage.setStyleSheet(u"")
-        self.PlayerSkinImage.setPixmap(QPixmap(u":/assets/img/sonic.png"))
+        self.PlayerSkinImage.setPixmap(QPixmap(u":/assets/assets/sonic.png"))
         self.PlayerSkinImage.setScaledContents(True)
 
         self.gridLayout_5.addWidget(self.PlayerSkinImage, 6, 0, 1, 1)
@@ -399,7 +397,7 @@ class Ui_MainWindow(object):
         self.GameExecFilePathBrowse.setObjectName(u"GameExecFilePathBrowse")
         self.GameExecFilePathBrowse.setMinimumSize(QSize(0, 28))
         icon6 = QIcon()
-        icon6.addFile(u":/assets/img/icons/folder.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon6.addFile(u":/assets/assets/icons/folder.png", QSize(), QIcon.Normal, QIcon.Off)
         self.GameExecFilePathBrowse.setIcon(icon6)
 
         self.gridLayout_20.addWidget(self.GameExecFilePathBrowse, 0, 2, 1, 1)
@@ -535,7 +533,7 @@ class Ui_MainWindow(object):
         self.ExportClientScriptButton = QPushButton(self.GameSettingsPage)
         self.ExportClientScriptButton.setObjectName(u"ExportClientScriptButton")
         icon7 = QIcon()
-        icon7.addFile(u":/assets/img/icons/document-save.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon7.addFile(u":/assets/assets/icons/document-save.png", QSize(), QIcon.Normal, QIcon.Off)
         self.ExportClientScriptButton.setIcon(icon7)
 
         self.gridLayout_14.addWidget(self.ExportClientScriptButton, 1, 0, 1, 1)
@@ -578,7 +576,7 @@ class Ui_MainWindow(object):
         sizePolicy4.setHeightForWidth(self.GameFilesDownButton.sizePolicy().hasHeightForWidth())
         self.GameFilesDownButton.setSizePolicy(sizePolicy4)
         icon8 = QIcon()
-        icon8.addFile(u":/assets/img/icons/go-down.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon8.addFile(u":/assets/assets/icons/go-down.png", QSize(), QIcon.Normal, QIcon.Off)
         self.GameFilesDownButton.setIcon(icon8)
 
         self.gridLayout_9.addWidget(self.GameFilesDownButton, 8, 8, 1, 1)
@@ -587,7 +585,7 @@ class Ui_MainWindow(object):
         self.GameFilesClearButton.setObjectName(u"GameFilesClearButton")
         self.GameFilesClearButton.setMinimumSize(QSize(0, 28))
         icon9 = QIcon()
-        icon9.addFile(u":/assets/img/icons/edit-delete.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon9.addFile(u":/assets/assets/icons/edit-delete.png", QSize(), QIcon.Normal, QIcon.Off)
         self.GameFilesClearButton.setIcon(icon9)
 
         self.gridLayout_9.addWidget(self.GameFilesClearButton, 1, 8, 1, 1)
@@ -596,7 +594,7 @@ class Ui_MainWindow(object):
         self.GameFilesDeleteButton.setObjectName(u"GameFilesDeleteButton")
         self.GameFilesDeleteButton.setMinimumSize(QSize(0, 28))
         icon10 = QIcon()
-        icon10.addFile(u":/assets/img/icons/list-remove.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon10.addFile(u":/assets/assets/icons/list-remove.png", QSize(), QIcon.Normal, QIcon.Off)
         self.GameFilesDeleteButton.setIcon(icon10)
 
         self.gridLayout_9.addWidget(self.GameFilesDeleteButton, 10, 7, 1, 1)
@@ -616,15 +614,15 @@ class Ui_MainWindow(object):
 
         self.GameFilesList = QListWidget(self.AddonsLoaderTab)
         icon11 = QIcon()
-        icon11.addFile(u":/assets/img/filetypes/wad.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon11.addFile(u":/assets/assets/filetypes/wad.png", QSize(), QIcon.Normal, QIcon.Off)
         __qlistwidgetitem6 = QListWidgetItem(self.GameFilesList)
         __qlistwidgetitem6.setIcon(icon11);
         icon12 = QIcon()
-        icon12.addFile(u":/assets/img/filetypes/pk3.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon12.addFile(u":/assets/assets/filetypes/pk3.png", QSize(), QIcon.Normal, QIcon.Off)
         __qlistwidgetitem7 = QListWidgetItem(self.GameFilesList)
         __qlistwidgetitem7.setIcon(icon12);
         icon13 = QIcon()
-        icon13.addFile(u":/assets/img/filetypes/lua.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon13.addFile(u":/assets/assets/filetypes/lua.png", QSize(), QIcon.Normal, QIcon.Off)
         __qlistwidgetitem8 = QListWidgetItem(self.GameFilesList)
         __qlistwidgetitem8.setIcon(icon13);
         self.GameFilesList.setObjectName(u"GameFilesList")
@@ -643,7 +641,7 @@ class Ui_MainWindow(object):
         sizePolicy4.setHeightForWidth(self.GameFilesUpButton.sizePolicy().hasHeightForWidth())
         self.GameFilesUpButton.setSizePolicy(sizePolicy4)
         icon14 = QIcon()
-        icon14.addFile(u":/assets/img/icons/go-up.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon14.addFile(u":/assets/assets/icons/go-up.png", QSize(), QIcon.Normal, QIcon.Off)
         self.GameFilesUpButton.setIcon(icon14)
 
         self.gridLayout_9.addWidget(self.GameFilesUpButton, 7, 8, 1, 1)
@@ -754,7 +752,7 @@ class Ui_MainWindow(object):
         self.DownloadModButton.setObjectName(u"DownloadModButton")
         self.DownloadModButton.setEnabled(False)
         icon15 = QIcon()
-        icon15.addFile(u":/assets/img/icons/download.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon15.addFile(u":/assets/assets/icons/download.png", QSize(), QIcon.Normal, QIcon.Off)
         self.DownloadModButton.setIcon(icon15)
 
         self.gridLayout_4.addWidget(self.DownloadModButton, 2, 2, 1, 1)
@@ -2262,7 +2260,7 @@ class Ui_MainWindow(object):
         self.SaveNetgameButton = QPushButton(self.BrowseTab)
         self.SaveNetgameButton.setObjectName(u"SaveNetgameButton")
         icon16 = QIcon()
-        icon16.addFile(u":/assets/img/icons/bookmark-new.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon16.addFile(u":/assets/assets/icons/bookmark-new.png", QSize(), QIcon.Normal, QIcon.Off)
         self.SaveNetgameButton.setIcon(icon16)
 
         self.horizontalLayout_18.addWidget(self.SaveNetgameButton)
@@ -2270,7 +2268,7 @@ class Ui_MainWindow(object):
         self.BrowseNetgameJoinButton = QPushButton(self.BrowseTab)
         self.BrowseNetgameJoinButton.setObjectName(u"BrowseNetgameJoinButton")
         icon17 = QIcon()
-        icon17.addFile(u":/assets/img/icons/media-playback-start.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon17.addFile(u":/assets/assets/icons/media-playback-start.png", QSize(), QIcon.Normal, QIcon.Off)
         self.BrowseNetgameJoinButton.setIcon(icon17)
 
         self.horizontalLayout_18.addWidget(self.BrowseNetgameJoinButton)
@@ -2807,7 +2805,7 @@ class Ui_MainWindow(object):
         self.ModsourceGamebananaCheckbox.setObjectName(u"ModsourceGamebananaCheckbox")
         self.ModsourceGamebananaCheckbox.setEnabled(True)
         icon18 = QIcon()
-        icon18.addFile(u":/assets/img/icons/gamebanana.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon18.addFile(u":/assets/assets/icons/gamebanana.png", QSize(), QIcon.Normal, QIcon.Off)
         self.ModsourceGamebananaCheckbox.setIcon(icon18)
 
         self.verticalLayout_6.addWidget(self.ModsourceGamebananaCheckbox)
@@ -2816,7 +2814,7 @@ class Ui_MainWindow(object):
         self.ModsourceSkybaseCheckbox.setObjectName(u"ModsourceSkybaseCheckbox")
         self.ModsourceSkybaseCheckbox.setEnabled(True)
         icon19 = QIcon()
-        icon19.addFile(u":/assets/img/icons/skybase.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon19.addFile(u":/assets/assets/icons/skybase.png", QSize(), QIcon.Normal, QIcon.Off)
         self.ModsourceSkybaseCheckbox.setIcon(icon19)
 
         self.verticalLayout_6.addWidget(self.ModsourceSkybaseCheckbox)
@@ -2824,7 +2822,7 @@ class Ui_MainWindow(object):
         self.ModsourceWSBlueCheckbox = QCheckBox(self.tab_6)
         self.ModsourceWSBlueCheckbox.setObjectName(u"ModsourceWSBlueCheckbox")
         icon20 = QIcon()
-        icon20.addFile(u":/assets/img/icons/wsblue.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon20.addFile(u":/assets/assets/icons/wsblue.png", QSize(), QIcon.Normal, QIcon.Off)
         self.ModsourceWSBlueCheckbox.setIcon(icon20)
 
         self.verticalLayout_6.addWidget(self.ModsourceWSBlueCheckbox)
@@ -2832,7 +2830,7 @@ class Ui_MainWindow(object):
         self.ModsourceWSRedCheckbox = QCheckBox(self.tab_6)
         self.ModsourceWSRedCheckbox.setObjectName(u"ModsourceWSRedCheckbox")
         icon21 = QIcon()
-        icon21.addFile(u":/assets/img/icons/wsred.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon21.addFile(u":/assets/assets/icons/wsred.png", QSize(), QIcon.Normal, QIcon.Off)
         self.ModsourceWSRedCheckbox.setIcon(icon21)
 
         self.verticalLayout_6.addWidget(self.ModsourceWSRedCheckbox)
@@ -2926,7 +2924,7 @@ class Ui_MainWindow(object):
         self.NewsTabButton = QToolButton(self.DockTabFrame)
         self.NewsTabButton.setObjectName(u"NewsTabButton")
         icon22 = QIcon()
-        icon22.addFile(u":/assets/img/icons/news.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon22.addFile(u":/assets/assets/icons/news.png", QSize(), QIcon.Normal, QIcon.Off)
         self.NewsTabButton.setIcon(icon22)
         self.NewsTabButton.setIconSize(QSize(48, 48))
         self.NewsTabButton.setCheckable(True)
@@ -2949,7 +2947,7 @@ class Ui_MainWindow(object):
         self.HelpTabButton.setObjectName(u"HelpTabButton")
         self.HelpTabButton.setMaximumSize(QSize(16777215, 16777215))
         icon23 = QIcon()
-        icon23.addFile(u":/assets/img/icons/about.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon23.addFile(u":/assets/assets/icons/about.png", QSize(), QIcon.Normal, QIcon.Off)
         self.HelpTabButton.setIcon(icon23)
         self.HelpTabButton.setIconSize(QSize(48, 48))
         self.HelpTabButton.setCheckable(True)
@@ -3631,7 +3629,7 @@ class Ui_MainWindow(object):
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'Atkinson Hyperlegible'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><img src=\":/assets/img/liquidlauncher.svg\" /><span style=\" font-family:'CMU Serif Medium'; font-size:16pt; font-weight:600;\"><br />LiquidLauncher</span></p>\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><assets src=\":/assets/assets/liquidlauncher.svg\" /><span style=\" font-family:'CMU Serif Medium'; font-size:16pt; font-weight:600;\"><br />LiquidLauncher</span></p>\n"
 "<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'CMU Serif Medium'; font-size:12pt; font-style:italic;\">the other launcher for Sonic Robo Blast 2</span></p>\n"
 "<p align=\"center\" style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margi"
                         "n-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'CMU Serif Medium'; font-size:12pt; font-style:italic;\"><br /></p>\n"

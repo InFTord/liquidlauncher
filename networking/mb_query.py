@@ -14,7 +14,7 @@ srb2mb = {
     "thread_link": "/addons/{thread}",
     "thread": "https://mb.srb2.org/addons/{thread}",
     "download": "https://mb.srb2.org/addons/{thread}download",
-    "icon": ":/assets/img/icons/srb2mb.png",
+    "icon": ":/assets/assets/icons/srb2mb.png",
     "vendor": "stjr"
 }
 
@@ -29,7 +29,7 @@ workshop_blue = {
     "thread_link": "/resources/{thread}",
     "thread": "https://srb2workshop.org/resources/{thread}/",
     "download": "https://srb2workshop.org/resources/{thread}download",
-    "icon": ":/assets/img/icons/wsblue.png",
+    "icon": ":/assets/assets/icons/wsblue.png",
     "vendor": "workshop"
 }
 
@@ -43,7 +43,7 @@ workshop_red = {
     "thread_link": "/resources/{thread}",
     "thread": "https://srb2workshop.org/resources/{thread}",
     "download": "https://srb2workshop.org/resources/{thread}download",
-    "icon": ":/assets/img/icons/wsred.png",
+    "icon": ":/assets/assets/icons/wsred.png",
     "vendor": "workshop"
 }
 
@@ -57,7 +57,7 @@ skybase = {
     "thread_link": "showthread.php?t={thread}",
     "thread": "https://srb2skybase.org/mb/showthread.php?t={thread}",
     "download": "https://srb2skybase.org/mb/attachment.php?attachmentid={mod}",
-    "icon": ":/assets/img/icons/skybase.png",
+    "icon": ":/assets/assets/icons/skybase.png",
     "vendor": "skybase"
 }
 
@@ -71,8 +71,8 @@ wadarchive = {
     "thread_link": "about:wadarchive",
     "thread": "about:wadarchive",
     "download": "about:wadarchive",
-    "icon": ":/assets/img/icons/sonichead.png",
-    #"icon": ":/assets/img/icons/wadarchive.png",
+    "icon": ":/assets/assets/icons/sonichead.png",
+    #"icon": ":/assets/assets/icons/wadarchive.png",
     "vendor": "wadarchive"
 }
 
@@ -88,7 +88,7 @@ gamebanana = {
     "thread_link": "about:gamebanana",
     "thread": "https://gamebanana.com/mods/{thread}",
     "download": "https://gamebanana.com/mods/download/{thread}",
-    "icon": ":/assets/img/icons/gamebanana.png",
+    "icon": ":/assets/assets/icons/gamebanana.png",
     "vendor": "gamebanana"
 }
 

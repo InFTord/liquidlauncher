@@ -3,17 +3,15 @@
 
 import os
 import sys
-import logging
 
 
 def _append_run_path():
     if getattr(sys, 'frozen', False):
-        pathlist = []
+        pathlist = [sys._MEIPASS]
 
         # If the application is run as a bundle, the pyInstaller bootloader
         # extends the sys module by a flag frozen=True and sets the app
         # path into variable _MEIPASS'.
-        pathlist.append(sys._MEIPASS)
 
         # the application exe path
         _main_app_path = os.path.dirname(sys.executable)

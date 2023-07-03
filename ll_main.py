@@ -1,29 +1,28 @@
 import json
 import os
 import platform
-import sys
 import shlex
+import sys
 import webbrowser
-from packaging import version # for version checks
-import toml
-from datetime import date
 
 import feedparser
-import subprocess32 as subprocess # Keep things drop-in
+import subprocess32 as subprocess  # Keep things drop-in
+import toml
 from PySide6 import QtGui, QtCore, QtWidgets
-from PySide6.QtWidgets import QFileDialog, QMenu, QInputDialog, QDialogButtonBox, QMessageBox
 from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QFileDialog, QMenu, QInputDialog, QMessageBox, QApplication
+from packaging import version  # for version checks
 
 import char_text
+from ll_info import http_headers, set_http_header
+from ll_info import product_version as versionString
 from ll_threading import QueryLiquid, QueryMessageBoard, QueryMasterServer, ModDownloader
 from ll_ui import *
-from ll_info import product_version as versionString
-from ll_info import http_headers, set_http_header
 
 global_settings_file = "ll_settings.toml"
 
 
-class MainWindow(QMainWindow):
+class MainWindow(Ui_MainWindow):
     # Emits instance of Mod() class from self.mods_list
     mod_description_sig = Signal(object)
     # Emits self.mods_list
@@ -39,16 +38,15 @@ class MainWindow(QMainWindow):
     check_version_sig = Signal(str)
     # Emits URL for RSS query
     load_rss_sig = Signal(str)
-    
 
     def __init__(self, app):
         super().__init__()
-        
+
         # Default Launcher settings. Profiles are filenames read from profiles_dir
         self.global_settings = {"current_profile": "default.toml",
                                 "profiles_dir": os.path.join(os.getcwd(), "ll_profiles"),
-                                "current_ms":{
-                                    "url": "http://mb.srb2.org/MS/0",
+                                "current_ms": {
+                                    "url": "https://mb.srb2.org/MS/0",
                                     "api": "v1",
                                 },
                                 "modsources": {
@@ -58,21 +56,22 @@ class MainWindow(QMainWindow):
                                     "wadarchive": False,
                                     "skybase": False,
                                     "gamebanana": False
-                                    },
+                                },
                                 "masterservers": {
-                                    "Astronight": {"url":"http://24.193.201.61/" , "api":"snitch"},
-                                    "InFTord": {"url":"https://lms.inftord.tech/" , "api":"snitch"},
-                                    "STJr": {"url":"https://mb.srb2.org/MS/0" , "api":"v1"},
-                                    "Kart Krew": {"url":"https://ms.kartkrew.org/ms/api/games/SRB2Kart/10" , "api":"kartv2"},
-                                    },
+                                    "Astronight": {"url": "http://24.193.201.61/", "api": "snitch"},
+                                    "InFTord": {"url": "https://lms.inftord.tech/", "api": "snitch"},
+                                    "STJr": {"url": "https://mb.srb2.org/MS/0", "api": "v1"},
+                                    "Kart Krew": {"url": "https://ms.kartkrew.org/ms/api/games/SRB2Kart/10",
+                                                  "api": "kartv2"},
+                                },
                                 "rss": [
                                     "https://liquidunderground.github.io/feed.rss",
                                     "https://srb2.org/feed",
                                     "https://www.sonicstadium.org/feed",
-                                    ],
+                                ],
                                 "devsettings": {
                                     "http_user_agent": http_headers["User-Agent"]
-                                    },
+                                },
                                 }
         self.current_profile_settings = None
 
@@ -80,7 +79,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.app = app
-        self.setWindowTitle("LiquidLauncher "+versionString)
+        self.setWindowTitle("LiquidLauncher " + versionString)
 
         # server ips stored internally so u don't dox people's ips if you're streaming or smth
         self.saved_server_ips = []
@@ -122,7 +121,7 @@ class MainWindow(QMainWindow):
 
         # Emits mod download filepath
         download_mod_path_sig = Signal(str)
-        
+
         # Master Server Multithreading
         self.ms_qthread = QueryMasterServer(self)
         self.ms_qthread.start()
@@ -130,7 +129,7 @@ class MainWindow(QMainWindow):
         self.query_ms_rooms_sig.connect(self.ms_qthread.on_query_ms_rooms)
         self.ms_qthread.server_list_sig1.connect(self.on_server_list)
         self.ms_qthread.on_ms_rooms_sig.connect(self.on_ms_rooms)
-        
+
         # load servers from file ===================================================== #
         # self.loadServerList()
         self.has_loaded_servers = False
@@ -142,7 +141,7 @@ class MainWindow(QMainWindow):
             self.ui.FlatpakRadiobutton.setEnabled(True)
 
         # file dialog options to keep shit consistent ================================ #
-        self.FileDialogOptions = QFileDialog.Options()
+        self.FileDialogOptions = QFileDialog
         # self.FileDialogOptions |= QFileDialog.DontUseNativeDialog
 
         # set tab to game tab initially ============================================== #
@@ -150,11 +149,11 @@ class MainWindow(QMainWindow):
         self.ui.GameContentStackedWidget.setCurrentIndex(0)
 
         # fix resolution of skin image =============================================== #
-        self.ui.PlayerSkinImage.setPixmap(QtGui.QPixmap(":/assets/img/sonic.png")
+        self.ui.PlayerSkinImage.setPixmap(QtGui.QPixmap(":/assets/assets/sonic.png")
                                           .scaled(135,
                                                   190,
-                                                  QtCore.Qt.KeepAspectRatio,
-                                                  QtCore.Qt.FastTransformation))
+                                                  QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                                                  QtCore.Qt.TransformationMode.FastTransformation))
 
         # changed skin index ========================================================= #
         self.ui.PlayerSkinInput.currentIndexChanged.connect(self.change_skin_image)
@@ -163,7 +162,7 @@ class MainWindow(QMainWindow):
         self.ui.GameFilesList.clear()
 
         # clear servers list ========================================================= #
-        #self.ui.ServerList.clear()
+        # self.ui.ServerList.clear()
         self.ui.SavedNetgameTable.setRowCount(0)
 
         # (Dev) settings hooks ======================================================= #
@@ -183,10 +182,11 @@ class MainWindow(QMainWindow):
         self.ui.ProfilesAddButton.clicked.connect(self.add_profile)
         self.ui.ProfilesDeleteButton.clicked.connect(self.confirm_delete_profile)
         self.ui.ProfilesRefreshButton.clicked.connect(self.refresh_profiles)
-        self.ui.ProfilesSaveButton.clicked.connect(lambda: self.save_profile_file(self.ui.GameProfileComboBox.currentText()))
-        #self.ui.GameProfileComboBox.currentIndexChanged.connect(self.set_current_profile)
+        self.ui.ProfilesSaveButton.clicked.connect(
+            lambda: self.save_profile_file(self.ui.GameProfileComboBox.currentText()))
+        # self.ui.GameProfileComboBox.currentIndexChanged.connect(self.set_current_profile)
         self.ui.GameProfileComboBox.currentTextChanged.connect(self.set_current_profile)
-        #self.ui.ProfileDirBrowseButton.clicked.connect(self.set_game_path)
+        # self.ui.ProfileDirBrowseButton.clicked.connect(self.set_game_path)
 
         # Launch sript export buttons ================================================ #
         self.ui.ExportServerScriptButton.clicked.connect(self.export_script)
@@ -214,7 +214,7 @@ class MainWindow(QMainWindow):
         self.ui.ModsList.itemSelectionChanged.connect(self.load_mod_page)
         self.ui.OpenPageButton.clicked.connect(self.open_mod_page)
         # server list buttons ======================================================== #
-        #self.ui.AddServerButton.clicked.connect(self.show_add_server_dialog)
+        # self.ui.AddServerButton.clicked.connect(self.show_add_server_dialog)
         self.ui.AddServerButton.clicked.connect(self.add_new_server_to_list)
         self.ui.JoinBookmarkButton.clicked.connect(self.join_selected_netgame_bookmark)
         self.ui.BrowseNetgameJoinButton.clicked.connect(self.join_selected_netgame_browse)
@@ -223,47 +223,49 @@ class MainWindow(QMainWindow):
         self.ui.BrowseNetgameTable.itemDoubleClicked.connect(self.join_selected_netgame_browse)
         self.ui.ModDirBrowseButton.clicked.connect(self.set_download_path)
         # Stubbed to make it editable
-        #self.ui.SavedNetgameTable.itemDoubleClicked.connect(self.join_selected_netgame_bookmark)
+        # self.ui.SavedNetgameTable.itemDoubleClicked.connect(self.join_selected_netgame_bookmark)
         #
-        #self.ui.BrowseMSCombobox.clicked.connect(self.change_current_ms)
-        #self.ui.EditServerButton.clicked.connect(self.open_server_editor)
+        # self.ui.BrowseMSCombobox.clicked.connect(self.change_current_ms)
+        # self.ui.EditServerButton.clicked.connect(self.open_server_editor)
         self.ui.JoinAddressButton.clicked.connect(self.join_from_ip)
         self.ui.RefreshButton.clicked.connect(self.query_ms)
-        #self.ui.JoinMasterServerButton.clicked.connect(self.join_ms_selection)
+        # self.ui.JoinMasterServerButton.clicked.connect(self.join_ms_selection)
         self.ui.SaveNetgameButton.clicked.connect(self.save_ms_selection)
 
         # RSS feed controls ======================================================== #
         self.ui.RSSRefreshButton.clicked.connect(lambda: self.load_news(str(self.ui.RSSFeedCombobox.currentText())))
-        self.ui.RSSFeedCombobox.lineEdit().returnPressed.connect(lambda: self.load_news(str(self.ui.RSSFeedCombobox.currentText())))
+        self.ui.RSSFeedCombobox.lineEdit().returnPressed.connect(
+            lambda: self.load_news(str(self.ui.RSSFeedCombobox.currentText())))
         self.ui.RSSViewonlineButton.clicked.connect(self.view_article_online)
         self.ui.RSSArticleList.doubleClicked.connect(self.view_article_online)
         self.ui.RSSArticleList.currentRowChanged.connect(self.load_article)
 
         # modsources checkboxes ================================================================ #
-        #self.ui.ModsourceMBCheckbox.clicked.connect(self.update_modsources)
-        #self.ui.ModsourceWSBlueCheckbox.clicked.connect(self.update_modsources)
-        #self.ui.ModsourceWSRedCheckbox.clicked.connect(self.update_modsources)
-        #self.ui.ModsourceGamebananaCheckbox.clicked.connect(self.update_modsources)
-        #self.ui.ModsourceSkybaseCheckbox.clicked.connect(self.update_modsources)
-        #self.ui.ModsourceWadarchiveCheckbox.clicked.connect(self.update_modsources)
+        # self.ui.ModsourceMBCheckbox.clicked.connect(self.update_modsources)
+        # self.ui.ModsourceWSBlueCheckbox.clicked.connect(self.update_modsources)
+        # self.ui.ModsourceWSRedCheckbox.clicked.connect(self.update_modsources)
+        # self.ui.ModsourceGamebananaCheckbox.clicked.connect(self.update_modsources)
+        # self.ui.ModsourceSkybaseCheckbox.clicked.connect(self.update_modsources)
+        # self.ui.ModsourceWadarchiveCheckbox.clicked.connect(self.update_modsources)
         self.ui.UseragentInput.textChanged.connect(lambda x: set_http_header("User-Agent", x))
 
         # MS table buttons ======================================================== #
         self.ui.MSAddButton.clicked.connect(self.add_new_ms_to_list)
         self.ui.MSRemoveButton.clicked.connect(self.remove_ms_from_list)
         self.ui.MSListSaveButton.clicked.connect(self.save_ms_list)
-        self.ui.MSVisitrepoButton.clicked.connect(lambda: self.open_url("https://github.com/liquidunderground/configs-public"))
+        self.ui.MSVisitrepoButton.clicked.connect(
+            lambda: self.open_url("https://github.com/liquidunderground/configs-public"))
         self.ui.SnitchButton.clicked.connect(lambda: self.query_liquid_qthread.on_snitch(
             self.ui.SnitchsrcCombobox.currentData(), self.ui.SnitchdestCombobox.currentText()))
 
         # RSS buttons ======================================================== #
         self.ui.RSSFeedList.itemSelectionChanged.connect(self.rss_enable_edit)
-        #self.ui.RSSFeedList.itemChanged.connect(self.rss_commit)
-        #self.ui.RSSFeedList.dataChanged.connect(self.rss_commit)
+        # self.ui.RSSFeedList.itemChanged.connect(self.rss_commit)
+        # self.ui.RSSFeedList.dataChanged.connect(self.rss_commit)
         self.ui.RSSMoveupButton.clicked.connect(self.rss_moveup)
         self.ui.RSSMovedownButton.clicked.connect(self.rss_movedown)
-        self.ui.RSSAddButton.clicked.connect(lambda: self.add_rss_to_list() )
-        self.ui.RSSRemoveButton.clicked.connect( self.remove_rss_from_list )
+        self.ui.RSSAddButton.clicked.connect(lambda: self.add_rss_to_list())
+        self.ui.RSSRemoveButton.clicked.connect(self.remove_rss_from_list)
 
         # Host settings Checkboxes ======================================================== #
         ## MS Room querying
@@ -285,21 +287,21 @@ class MainWindow(QMainWindow):
         self.ui.RSSMovedownButton.setEnabled(True)
         self.ui.RSSRemoveButton.setEnabled(True)
 
-    def add_rss_to_list(self, url="https://example.com/feed" ):
+    def add_rss_to_list(self, url="https://example.com/feed"):
         new_item = QtWidgets.QListWidgetItem()
         new_item.setText(url)
-        new_item.setFlags(  QtCore.Qt.ItemIsSelectable | 
-                            QtCore.Qt.ItemIsEditable |
-                            QtCore.Qt.ItemIsDragEnabled |
-                            QtCore.Qt.ItemIsDropEnabled |
-                            QtCore.Qt.ItemIsEnabled
-                            )
+        new_item.setFlags(QtCore.Qt.ItemIsSelectable |
+                          QtCore.Qt.ItemIsEditable |
+                          QtCore.Qt.ItemIsDragEnabled |
+                          QtCore.Qt.ItemIsDropEnabled |
+                          QtCore.Qt.ItemIsEnabled
+                          )
         self.ui.RSSFeedList.addItem(new_item)
-        self.ui.RSSFeedList.setCurrentRow(self.ui.RSSFeedList.count()-1)
+        self.ui.RSSFeedList.setCurrentRow(self.ui.RSSFeedList.count() - 1)
 
     def remove_rss_from_list(self):
         # QListWidget.takeItem bc Qt is weird
-        self.ui.RSSFeedList.takeItem( self.ui.RSSFeedList.currentRow() )
+        self.ui.RSSFeedList.takeItem(self.ui.RSSFeedList.currentRow())
 
     def rss_moveup(self):
         reservedItems = []
@@ -336,12 +338,12 @@ class MainWindow(QMainWindow):
         self.load_rss_sig.emit(feed)
 
     def on_load_news_cb(self, content, error=False):
-        if(error): # Emergency error kludge
+        if (error):  # Emergency error kludge
             self.ui.RSSStatusLabel.setText(content)
             print(content)
             return
         msg = "News feed successfully loaded."
-        #print("RAW CONTENT: {}\n".format(content))
+        # print("RAW CONTENT: {}\n".format(content))
         feed = feedparser.parse(content)
         if len(feed["items"]) < 1:
             msg = "No news found. Did you check the URL?"
@@ -363,7 +365,7 @@ class MainWindow(QMainWindow):
             self.ui.RSSArticleView.setHtml(self.news[index].content[0].value)
         else:
             self.ui.RSSArticleView.setHtml("<h1>{}</h1>"
-                                           "<p><img src=\":/assets/img/icons/about.png\" /></p>"
+                                           "<p><assets src=\":/assets/assets/icons/about.png\" /></p>"
                                            "<p>No content available. This "
                                            "is most likely an issue with "
                                            "your RSS/Atom feed, not with "
@@ -375,33 +377,28 @@ class MainWindow(QMainWindow):
         idx = self.ui.RSSArticleList.currentRow()
         self.open_url(self.news[idx].link)
 
-    def show_add_server_dialog(self):
-        self.childWindow = edit_server_main.ChildWindow(self, "", "", True)
-        self.childWindow.show()
-        return
-
-    def add_new_server_to_list(self): 
+    def add_new_server_to_list(self):
         print("add_new_server_to_list")
         self.add_server_to_list("Dummy Server", "127.0.0.1", "5029")
         return
 
     def change_skin_image(self):
-        asset_img = ":/assets/img/sonic.png"
+        asset_img = ":/assets/assets/sonic.png"
         self.ui.PlayerSkinInfoText.setText(char_text.sonic)
         if self.ui.PlayerSkinInput.currentIndex() == 2:
-            asset_img = ":/assets/img/tails.png"
+            asset_img = ":/assets/assets/tails.png"
             self.ui.PlayerSkinInfoText.setText(char_text.tails)
         if self.ui.PlayerSkinInput.currentIndex() == 3:
-            asset_img = ":/assets/img/knuckles.png"
+            asset_img = ":/assets/assets/knuckles.png"
             self.ui.PlayerSkinInfoText.setText(char_text.knux)
         if self.ui.PlayerSkinInput.currentIndex() == 4:
-            asset_img = ":/assets/img/rosy.png"
+            asset_img = ":/assets/assets/rosy.png"
             self.ui.PlayerSkinInfoText.setText(char_text.amy)
         if self.ui.PlayerSkinInput.currentIndex() == 5:
-            asset_img = ":/assets/img/fang.png"
+            asset_img = ":/assets/assets/fang.png"
             self.ui.PlayerSkinInfoText.setText(char_text.fang)
         if self.ui.PlayerSkinInput.currentIndex() == 6:
-            asset_img = ":/assets/img/metal.png"
+            asset_img = ":/assets/assets/metal.png"
             self.ui.PlayerSkinInfoText.setText(char_text.metal)
 
         self.ui.PlayerSkinImage.setPixmap(
@@ -416,37 +413,37 @@ class MainWindow(QMainWindow):
         This converts all of the launcher inputs to a single-string command to 
         launch SRB2
         """
-        #com = ""
+        # com = ""
         com = []
-        if self.ui.FlatpakRadiobutton.isChecked() and self.ui.FlatpakRadiobutton.isEnabled(): 
-            com += ["flatpak","run","org.srb2.SRB2"]
+        if self.ui.FlatpakRadiobutton.isChecked() and self.ui.FlatpakRadiobutton.isEnabled():
+            com += ["flatpak", "run", "org.srb2.SRB2"]
         else:
-            if self.ui.WineRadiobutton.isChecked() and self.ui.WineRadiobutton.isEnabled(): 
-                com +=[ "wine"]
+            if self.ui.WineRadiobutton.isChecked() and self.ui.WineRadiobutton.isEnabled():
+                com += ["wine"]
             com += [self.ui.GameExecFilePathInput.text()]
 
-        if self.ui.HomePathInput.text() != "": 
-            com += ["-home", self.ui.HomePathInput.text() ]
+        if self.ui.HomePathInput.text() != "":
+            com += ["-home", self.ui.HomePathInput.text()]
 
-        if self.ui.PlayerNameInput.text() != "": com += ["+name",self.ui.PlayerNameInput.text()]
+        if self.ui.PlayerNameInput.text() != "": com += ["+name", self.ui.PlayerNameInput.text()]
         if self.ui.PlayerColorInput.currentText():
-            com += ["+color" , str(self.ui.PlayerColorInput.currentText().lower())]
+            com += ["+color", str(self.ui.PlayerColorInput.currentText().lower())]
         if self.ui.PlayerSkinInput.currentText():
-            com += ["+skin" , str(
-            self.ui.PlayerSkinInput.currentText().lower().replace(" ", ""))]
+            com += ["+skin", str(
+                self.ui.PlayerSkinInput.currentText().lower().replace(" ", ""))]
 
         # get all files ====================================================== #
         if self.ui.GameFilesList.count() > 0:
-            com +=[ "-file"]
+            com += ["-file"]
             for i in range(self.ui.GameFilesList.count()):
                 com += [self.ui.GameFilesList.item(i).text()]
 
         # add a script ======================================================= #
-        if self.ui.GameFilesExecScriptInput.text() != "": 
+        if self.ui.GameFilesExecScriptInput.text() != "":
             com += ["+exec", self.ui.GameFilesExecScriptInput.text()]
 
         # custom parameters ================================================== #
-        if self.ui.GameArgsInput.text() != "": 
+        if self.ui.GameArgsInput.text() != "":
             com += shlex.split(self.ui.GameArgsInput.text())
 
         return com
@@ -457,19 +454,19 @@ class MainWindow(QMainWindow):
         com = self.get_client_launch_command_headless()
 
         # game settings (from game settings tab) ============================= #
-        if self.ui.GameRendererSetting.currentIndex() == 0: com += ["+renderer","1"]
-        if self.ui.GameRendererSetting.currentIndex() == 1: com += ["+renderer","2"]
-        if self.ui.GameFullscreenSetting.currentIndex() == 0: com += ["+fullscreen","1"]
+        if self.ui.GameRendererSetting.currentIndex() == 0: com += ["+renderer", "1"]
+        if self.ui.GameRendererSetting.currentIndex() == 1: com += ["+renderer", "2"]
+        if self.ui.GameFullscreenSetting.currentIndex() == 0: com += ["+fullscreen", "1"]
         if self.ui.GameFullscreenSetting.currentIndex() == 1: com += ["-borderless"]
         if self.ui.GameFullscreenSetting.currentIndex() == 2: com += ["-win"]
-        if self.ui.GameMusicSetting.currentIndex() == 0: com += ["+digimusic","On"]
-        if self.ui.GameMusicSetting.currentIndex() == 1: com += ["+digimusic","Off"]
+        if self.ui.GameMusicSetting.currentIndex() == 0: com += ["+digimusic", "On"]
+        if self.ui.GameMusicSetting.currentIndex() == 1: com += ["+digimusic", "Off"]
         if self.ui.GameMusicSetting.currentIndex() == 2: com += ["-usecd"]
         if self.ui.GameMusicSetting.currentIndex() == 3: com += ["-nomusic"]
         if self.ui.GameSoundSetting.currentIndex() == 1: com += ["-nosound"]
         if self.ui.GameHorizontalResolutionInput.text() != "" and self.ui.GameVerticalResolutionInput.text() != "":
-            com += [" -width " , self.ui.GameHorizontalResolutionInput.text() , " -height " \
-                   , self.ui.GameVerticalResolutionInput.text() ]
+            com += [" -width ", self.ui.GameHorizontalResolutionInput.text(), " -height " \
+                , self.ui.GameVerticalResolutionInput.text()]
         print("CLIENT COMMAND: {}".format(com))
         return com
 
@@ -477,7 +474,7 @@ class MainWindow(QMainWindow):
         """Launch server
         """
         launch_command = []
-        #launch_command = self.ui.GameExecFilePathInput.text() + " -server"
+        # launch_command = self.ui.GameExecFilePathInput.text() + " -server"
         if self.ui.DedicatedServerToggle.isChecked():
             launch_command += self.get_client_launch_command_headless()
         else:
@@ -486,83 +483,83 @@ class MainWindow(QMainWindow):
         launch_command += ["-server"]
 
         ### General settings tab ###
-        if self.ui.ServerNameInput.text() != "": launch_command += ["+servername ",self.ui.ServerNameInput.text()]
-        if self.ui.AdminPasswordInput.text() != "": launch_command += ["+password",self.ui.AdminPasswordInput.text()]
-        if self.ui.HostMSCombobox.currentText() != "": launch_command += ["+masterserver",self.ui.HostMSCombobox.currentText()]
+        if self.ui.ServerNameInput.text() != "": launch_command += ["+servername ", self.ui.ServerNameInput.text()]
+        if self.ui.AdminPasswordInput.text() != "": launch_command += ["+password", self.ui.AdminPasswordInput.text()]
+        if self.ui.HostMSCombobox.currentText() != "": launch_command += ["+masterserver",
+                                                                          self.ui.HostMSCombobox.currentText()]
         # TODO: Live Master Server room queries
         if self.ui.RoomInput.currentIndex() != 0:
             launch_command += ["-id", str(self.ui.RoomInput.itemData(self.ui.RoomInput.currentIndex()))]
         if self.ui.DedicatedServerToggle.isChecked(): launch_command += ["-dedicated"]
         if self.ui.PortInput.text() != "":
-            launch_command += ["-port" , self.ui.PortInput.text()]
+            launch_command += ["-port", self.ui.PortInput.text()]
         else:
-            launch_command += ["-port","5029"]
+            launch_command += ["-port", "5029"]
         if self.ui.Ipv6Checkbox.isChecked(): launch_command += ["-ipv6"]
         if self.ui.UpnpCheckbox.isChecked(): launch_command += ["-upnp"]
         if self.ui.BandwidthInput.value() != 1000:
-            launch_command += ["-bandwidth",str(self.ui.BandwidthInput.value())]
+            launch_command += ["-bandwidth", str(self.ui.BandwidthInput.value())]
         if self.ui.ExtraticInput.value() != 1:
-            launch_command += ["-extratic ",str(self.ui.ExtraticInput.value())]
+            launch_command += ["-extratic ", str(self.ui.ExtraticInput.value())]
         #### Downloading section ####
         if self.ui.UploadToggle.isChecked():
-            launch_command += ["+downloading","1"]
+            launch_command += ["+downloading", "1"]
         else:
-            launch_command += ["+downloading","0"]
-        launch_command += ["+downloadspeed" , str(self.ui.DownloadspeedInput.value())]
-        launch_command += ["+maxsend" , str(self.ui.MaxsendInput.value())]
+            launch_command += ["+downloading", "0"]
+        launch_command += ["+downloadspeed", str(self.ui.DownloadspeedInput.value())]
+        launch_command += ["+maxsend", str(self.ui.MaxsendInput.value())]
         #### Timeouts & Resynch section ####
-        launch_command += ["+maxping" , str(self.ui.MaxpingInput.value())]
-        launch_command += ["+nettimeout" , str(self.ui.NettimeoutInput.value())]
-        launch_command += ["+resynchattempts" , str(self.ui.ResynchattemptsInput.value())]
+        launch_command += ["+maxping", str(self.ui.MaxpingInput.value())]
+        launch_command += ["+nettimeout", str(self.ui.NettimeoutInput.value())]
+        launch_command += ["+resynchattempts", str(self.ui.ResynchattemptsInput.value())]
 
         ### Game settings tab ###
-        launch_command += ["-gametype" , str(self.ui.GametypeInput.currentIndex())]
-        launch_command += ["+advancemap" , str(self.ui.AdvanceMapInput.currentIndex())]
+        launch_command += ["-gametype", str(self.ui.GametypeInput.currentIndex())]
+        launch_command += ["+advancemap", str(self.ui.AdvanceMapInput.currentIndex())]
         if self.ui.MaxPlayersInput.value() != 8:
-            launch_command += ["+maxplayers" , str(self.ui.MaxPlayersInput.value())]
+            launch_command += ["+maxplayers", str(self.ui.MaxPlayersInput.value())]
         if (self.ui.ForceSkinInput.currentText() != ""):
-            launch_command += ["+forceskin" , self.ui.ForceSkinInput.currentText().lower().replace( " ", "")]
+            launch_command += ["+forceskin", self.ui.ForceSkinInput.currentText().lower().replace(" ", "")]
         # TODO: Add the rest
 
         ### Coop Settings Tab ###
         if self.ui.CoopSettingsCheckbox.isChecked():
-            launch_command += ["+startinglives" , str(self.ui.StartinglivesInput.value())]
-            launch_command += ["+playersforexit" , str(self.ui.PlayersforexitCombobox.currentIndex())]
-            launch_command += ["+competitionboxes" , str(self.ui.CompetitionboxesCombobox.currentIndex())]
+            launch_command += ["+startinglives", str(self.ui.StartinglivesInput.value())]
+            launch_command += ["+playersforexit", str(self.ui.PlayersforexitCombobox.currentIndex())]
+            launch_command += ["+competitionboxes", str(self.ui.CompetitionboxesCombobox.currentIndex())]
 
         ### Ringslinger Settings Tab ###
         if self.ui.RingslingerSettingsCheckbox.isChecked():
             if self.ui.PointLimitInput.value() != 0:
-                launch_command += ["+pointlimit" , str(self.ui.PointLimitInput.value())]
-            launch_command += ["+matchscoring" , str(self.ui.MatchscoringCombobox.currentIndex())]
+                launch_command += ["+pointlimit", str(self.ui.PointLimitInput.value())]
+            launch_command += ["+matchscoring", str(self.ui.MatchscoringCombobox.currentIndex())]
             if self.ui.TimeLimitInput.text() != "":
-                launch_command += ["+timelimit" , str(self.ui.TimeLimitInput.value())]
+                launch_command += ["+timelimit", str(self.ui.TimeLimitInput.value())]
             else:
-                launch_command += ["+timelimit","0"]
+                launch_command += ["+timelimit", "0"]
             launch_command += ["+overtime", "1" if self.ui.OvertimeCheckbox.isChecked() else "0"]
-            launch_command += ["+respawndelay" , str(self.ui.RespawndelayInput.value())]
+            launch_command += ["+respawndelay", str(self.ui.RespawndelayInput.value())]
             launch_command += ["+specialrings", "1" if self.ui.PowerstonesCheckbox.isChecked() else "0"]
             launch_command += ["+suddendeath", "1" if self.ui.PowerstonesCheckbox.isChecked() else "0"]
             launch_command += ["+powerstones", "1" if self.ui.PowerstonesCheckbox.isChecked() else "0"]
-            launch_command += ["+matchboxes" , str(self.ui.MatchboxesCombobox.currentIndex())]
+            launch_command += ["+matchboxes", str(self.ui.MatchboxesCombobox.currentIndex())]
             launch_command += ["+autobalance", str(self.ui.AutobalanceCheckbox.currentIndex())]
             launch_command += ["+flagtime", str(self.ui.FlagtimeInput.value())]
             launch_command += ["+friendlyfire", "1" if self.ui.FriendlyfireCheckbox.isChecked() else "0"]
             launch_command += ["+touchtag", "1" if self.ui.TouchtagCheckbox.isChecked() else "0"]
             launch_command += ["+hidetime", str(self.ui.HidetimeInput.value())]
             # TODO: Debug
-           
 
         ### Circuit Race Settings Tab ###
         if self.ui.CircuitraceSettingsCheckbox.isChecked():
             if self.ui.NumlapsInput.value() != 0:
-                launch_command += ["+numlaps" , str(self.ui.NumlapsInput.value())]
+                launch_command += ["+numlaps", str(self.ui.NumlapsInput.value())]
             if self.ui.CountdowntimeInput.value() != 0:
-                launch_command += ["+countdowntime" , str(self.ui.CountdowntimeInput.value())]
+                launch_command += ["+countdowntime", str(self.ui.CountdowntimeInput.value())]
             if self.ui.UsemaplapsCheckbox.isChecked():
-                launch_command += ["+usemaplaps","1"]
+                launch_command += ["+usemaplaps", "1"]
             else:
-                launch_command += ["+usemaplaps","0"]
+                launch_command += ["+usemaplaps", "0"]
 
         ### Battlmod Settings Tab ###
         if self.ui.BattlemodSettingsCheckbox.isChecked():
@@ -573,14 +570,15 @@ class MainWindow(QMainWindow):
             launch_command += ["+battle_recoveryjump", "1" if self.ui.Battle_recoveryjumpCheckbox.isChecked() else "0"]
             ## Item settings
             launch_command += ["+item_rate", str(self.ui.Item_rateCombobox.currentIndex())]
-            launch_command += ["+item_type", str(self.ui.Item_typeCombobox.currentIndex()-1)]
+            launch_command += ["+item_type", str(self.ui.Item_typeCombobox.currentIndex() - 1)]
             launch_command += ["+item_global", "1" if self.ui.Item_globalCheckbox.isChecked() else "0"]
             launch_command += ["+item_local", "1" if self.ui.Item_localCheckbox.isChecked() else "0"]
             ## Battle mode settings
             launch_command += ["+survival_lives", str(self.ui.Survival_livesInput.value())]
             launch_command += ["+battle_startrings", str(self.ui.Battle_startringsInput.value())]
             launch_command += ["+survival_revenge", str(self.ui.Survival_revengeCombobox.currentIndex())]
-            launch_command += ["+survival_suddendeath", "1" if self.ui.Survival_suddendeathCheckbox.isChecked() else "0"]
+            launch_command += ["+survival_suddendeath",
+                               "1" if self.ui.Survival_suddendeathCheckbox.isChecked() else "0"]
             ## Battle/Survival settings
             launch_command += ["+battle_collision", "1" if self.ui.Battle_collisionsCheckbox.isChecked() else "0"]
             launch_command += ["+battle_slipstreams", "1" if self.ui.Battle_slipstreamsheckbox.isChecked() else "0"]
@@ -602,9 +600,8 @@ class MainWindow(QMainWindow):
             launch_command += ["+diamond_capture_time", str(self.ui.Diamond_capture_timeInput.value())]
             launch_command += ["+diamond_capture_bonus", str(self.ui.Diamond_capture_bonusInput.value())]
             ## Cutsom Battlemod flags ##
-            if self.ui.Battle_addoptionsInput.text() != "": 
+            if self.ui.Battle_addoptionsInput.text() != "":
                 com += shlex.split(self.ui.Battle_addoptionsInput.text())
-
 
         print("SERVER COMMAND: {}".format(launch_command))
         return launch_command
@@ -612,37 +609,37 @@ class MainWindow(QMainWindow):
     def set_game_path(self):
         f = QFileDialog.getExistingDirectory()
         if (f):
-            #self.PathGameFilesExecScriptInput.setText(f)
+            # self.PathGameFilesExecScriptInput.setText(f)
             self.ui.ProfileDirInput.setText(f)
             pass
 
-    #ä
+    # ä
     def query_ms_rooms(self):
         print("query_ms_rooms()")
-        self.ui.MSRoomqueryrefreshButton.setEnabled(False) # MutEx lock. unlock in on_query_rooms
+        self.ui.MSRoomqueryrefreshButton.setEnabled(False)  # MutEx lock. unlock in on_query_rooms
         self.ui.RoomInput.setEnabled(False)
         url = self.ui.HostMSCombobox.currentText()
         self.query_ms_rooms_sig.emit(url)
-        #self.on_ms_rooms({
-            #33: "Standard",
-            #28: "Casual",
-            #38: "Custom Gametypes",
-            #31: "OLDC",
-            #101: "@Sonic",
-            #102: "@Tails",
-            #103: "@Knuckles",
-        #}) # Debug switch
+        # self.on_ms_rooms({
+        # 33: "Standard",
+        # 28: "Casual",
+        # 38: "Custom Gametypes",
+        # 31: "OLDC",
+        # 101: "@Sonic",
+        # 102: "@Tails",
+        # 103: "@Knuckles",
+        # }) # Debug switch
 
     def on_ms_rooms(self, data={}):
         print("on_ms_rooms({})\n".format(data))
-        self.ui.RoomInput.blockSignals(True) # MutEx lock
+        self.ui.RoomInput.blockSignals(True)  # MutEx lock
         self.ui.RoomInput.clear()
-        self.ui.RoomInput.insertItem( 0, "No room/Offline")
+        self.ui.RoomInput.insertItem(0, "No room/Offline")
         for roomid, roomname in data.items():
-            self.ui.RoomInput.addItem("{} (ID: {})".format(roomname,roomid),roomid)
-            #self.ui.RoomInput.insertItem( self.ui.RoomInput.count(), "{} ({})".format(roomname,roomid))
-        self.ui.RoomInput.blockSignals(False) # MutEx unlock
-        self.ui.RoomInput.setEnabled(True) # MutEx unlock. lock in query_ms_rooms
+            self.ui.RoomInput.addItem("{} (ID: {})".format(roomname, roomid), roomid)
+            # self.ui.RoomInput.insertItem( self.ui.RoomInput.count(), "{} ({})".format(roomname,roomid))
+        self.ui.RoomInput.blockSignals(False)  # MutEx unlock
+        self.ui.RoomInput.setEnabled(True)  # MutEx unlock. lock in query_ms_rooms
         self.ui.MSRoomqueryrefreshButton.setEnabled(True)
         return
 
@@ -683,7 +680,7 @@ class MainWindow(QMainWindow):
         new_item.setText(os.path.basename(str(f)))
         new_item_icon = QtGui.QIcon()
         filetype = str(f).split(".")[-1]
-        new_item_icon.addPixmap(QtGui.QPixmap(":/assets/img/filetypes/" + filetype + ".png"), QtGui.QIcon.Normal,
+        new_item_icon.addPixmap(QtGui.QPixmap(":/assets/assets/filetypes/" + filetype + ".png"), QtGui.QIcon.Normal,
                                 QtGui.QIcon.Off)
         new_item.setIcon(new_item_icon)
         self.ui.GameFilesList.addItem(new_item)
@@ -783,15 +780,15 @@ class MainWindow(QMainWindow):
         return
 
     # Mods browser
-    
+
     def open_mod_page(self):
         mod = self.get_selected_mod().url
         self.open_url(mod)
-    
+
     def get_selected_mod(self):
-        #selection = self.ui.ModsList.currentItem().text()
-        #mod = self.mods_list[selection]
-        #return mod
+        # selection = self.ui.ModsList.currentItem().text()
+        # mod = self.mods_list[selection]
+        # return mod
         selection = self.ui.ModsList.currentItem().data(3)
         return selection
 
@@ -805,18 +802,19 @@ class MainWindow(QMainWindow):
         if self.mods_list:
             mod = self.get_selected_mod()
             print("SELECTED MOD: {}".format(mod))
-            #mod.set_download_url()
-            #path = os.path.join( self.ui.HomePathInput.text(), "DOWNLOAD")
-            path = self.ui.ModDirInput.text() if self.ui.ModDirInput.text() != "" else os.path.join(os.path.expanduser("~"), "Downloads")
+            # mod.set_download_url()
+            # path = os.path.join( self.ui.HomePathInput.text(), "DOWNLOAD")
+            path = self.ui.ModDirInput.text() if self.ui.ModDirInput.text() != "" else os.path.join(
+                os.path.expanduser("~"), "Downloads")
             self.ui.ModStatusLabel.setText("Downloading mod...")
             self.download_mod_url_sig.emit(mod.download_url)
             self.download_mod_path_sig.emit(path)
 
     def append_mod_to_list(self, mod, icon=None):
-        print("append_mod_to_list({},{})".format(mod,icon))
+        print("append_mod_to_list({},{})".format(mod, icon))
         new_item = QtWidgets.QListWidgetItem()
         new_item.setText(mod)
-        new_item.setData(3,self.mods_list[mod])
+        new_item.setData(3, self.mods_list[mod])
         if icon:
             qicon = QtGui.QIcon()
             qicon.addPixmap(QtGui.QPixmap(icon),
@@ -829,8 +827,8 @@ class MainWindow(QMainWindow):
         self.ui.ModStatusLabel.setText("Downloading mod description...")
         if self.mods_list:
             mod = self.get_selected_mod().url
-            #print("Mod URL: {}".format(mod.url))
-            #self.ui.ModBrowser.load(mod.url)
+            # print("Mod URL: {}".format(mod.url))
+            # self.ui.ModBrowser.load(mod.url)
             print("Mod URL: {}".format(mod))
             self.ui.ModBrowser.load(mod)
             self.ui.ModStatusLabel.setText("Mod successfully loaded.")
@@ -853,7 +851,7 @@ class MainWindow(QMainWindow):
         self.ui.ModBrowser.setHtml(mod.description, mod.url)
         self.ui.ModBrowser.load(mod.url)
 
-    def on_mod_statmsg(self,msg):
+    def on_mod_statmsg(self, msg):
         self.ui.ModStatusLabel.setText(msg)
 
     def on_mod_list(self, mod_list, icon=None):
@@ -886,16 +884,15 @@ class MainWindow(QMainWindow):
             print("> new current_ms: ", self.global_settings.get("current_ms", "<NONE>"))
             self.query_ms()
         except Exception as e:
-            print("Unable to change MS: ",e)
-
+            print("Unable to change MS: ", e)
 
     def query_ms(self):
         print("query_ms")
         self.ui.MSStatusLabel.setText("Downloading netgame list...")
-        #self.ui.MasterServerList.clear()
+        # self.ui.MasterServerList.clear()
         self.ui.BrowseNetgameTable.setRowCount(0)
         self.query_ms_sig.emit(True)
-    
+
     def on_server_list(self, server_list):
         self.ui.MSStatusLabel.setText('Click "Refresh" to download a list of '
                                       'servers.')
@@ -907,29 +904,29 @@ class MainWindow(QMainWindow):
                 server.get("name_plain"),
                 server.get("room"),
                 server.get("version"),
-                server.get("origin") 
-                )
+                server.get("origin")
+            )
             new_item = QtWidgets.QListWidgetItem()
             new_item.setText(entry_label)
             # Create new row & fill with data
-            self.ui.BrowseNetgameTable.insertRow( self.ui.BrowseNetgameTable.rowCount() )
+            self.ui.BrowseNetgameTable.insertRow(self.ui.BrowseNetgameTable.rowCount())
             twi_name = QtWidgets.QTableWidgetItem(server.get("name_plain"))
             twi_room = QtWidgets.QTableWidgetItem(server.get("room"))
             twi_version = QtWidgets.QTableWidgetItem(server.get("version"))
             twi_gametype = QtWidgets.QTableWidgetItem(server.get("game"))
-            twi_origin = QtWidgets.QTableWidgetItem(server.get("origin")) 
+            twi_origin = QtWidgets.QTableWidgetItem(server.get("origin"))
 
-            twi_name.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled )
-            twi_room.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled )
-            twi_version.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled )
-            twi_gametype.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled )
-            twi_origin.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled )
+            twi_name.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            twi_room.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            twi_version.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            twi_gametype.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            twi_origin.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
-            self.ui.BrowseNetgameTable.setItem( self.ui.BrowseNetgameTable.rowCount()-1 , 0, twi_name )
-            self.ui.BrowseNetgameTable.setItem( self.ui.BrowseNetgameTable.rowCount()-1 , 3, twi_room )
-            self.ui.BrowseNetgameTable.setItem( self.ui.BrowseNetgameTable.rowCount()-1 , 2, twi_version )
-            self.ui.BrowseNetgameTable.setItem( self.ui.BrowseNetgameTable.rowCount()-1 , 1, twi_gametype )
-            self.ui.BrowseNetgameTable.setItem( self.ui.BrowseNetgameTable.rowCount()-1 , 4, twi_origin)
+            self.ui.BrowseNetgameTable.setItem(self.ui.BrowseNetgameTable.rowCount() - 1, 0, twi_name)
+            self.ui.BrowseNetgameTable.setItem(self.ui.BrowseNetgameTable.rowCount() - 1, 3, twi_room)
+            self.ui.BrowseNetgameTable.setItem(self.ui.BrowseNetgameTable.rowCount() - 1, 2, twi_version)
+            self.ui.BrowseNetgameTable.setItem(self.ui.BrowseNetgameTable.rowCount() - 1, 1, twi_gametype)
+            self.ui.BrowseNetgameTable.setItem(self.ui.BrowseNetgameTable.rowCount() - 1, 4, twi_origin)
 
             self.master_server_list[entry_label] = server
 
@@ -941,11 +938,11 @@ class MainWindow(QMainWindow):
             self.ui.BrowseNetgameTable.item(self.ui.BrowseNetgameTable.currentRow(), 3).text(),
             self.ui.BrowseNetgameTable.item(self.ui.BrowseNetgameTable.currentRow(), 2).text(),
             self.ui.BrowseNetgameTable.item(self.ui.BrowseNetgameTable.currentRow(), 4).text()
-            )
+        )
         ip_string = '{}:{}'.format(
             self.master_server_list[selection].get("ip"),
-            self.master_server_list[selection].get("port") )
-        subprocess.Popen(self.get_client_launch_command() + ["-connect" , ip_string])
+            self.master_server_list[selection].get("port"))
+        subprocess.Popen(self.get_client_launch_command() + ["-connect", ip_string])
         return
 
     def save_ms_selection(self):
@@ -956,7 +953,7 @@ class MainWindow(QMainWindow):
                 self.ui.BrowseNetgameTable.item(row.row(), 3).text(),
                 self.ui.BrowseNetgameTable.item(row.row(), 2).text(),
                 self.ui.BrowseNetgameTable.item(row.row(), 4).text()
-                )
+            )
             server = self.master_server_list[selection]
             ip = server.get("ip")
             name = self.ui.BrowseNetgameTable.item(row.row(), 0).text()
@@ -969,9 +966,9 @@ class MainWindow(QMainWindow):
         serv_list = {}
         for i in range(len(self.saved_server_ips)):
             serv_list[self.ui.SavedNetgameTable.item(i, 0).text()] = {
-                    "ip": self.ui.SavedNetgameTable.item(i, 1).text(),
-                    "port": self.ui.SavedNetgameTable.item(i, 2).text()
-                    }
+                "ip": self.ui.SavedNetgameTable.item(i, 1).text(),
+                "port": self.ui.SavedNetgameTable.item(i, 2).text()
+            }
         with open("bookmarks.toml", "w") as f:
             toml.dump(serv_list, f)
         return
@@ -996,22 +993,15 @@ class MainWindow(QMainWindow):
         twi_title = QtWidgets.QTableWidgetItem(name)
         twi_ip = QtWidgets.QTableWidgetItem(ip)
         twi_port = QtWidgets.QTableWidgetItem(port)
-        #twi_title.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled )
-        #twi_ip.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled )
-        self.ui.SavedNetgameTable.setItem( 0, 0, twi_title )
-        self.ui.SavedNetgameTable.setItem( 0, 1, twi_ip )
-        self.ui.SavedNetgameTable.setItem( 0, 2, twi_port )
+        # twi_title.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled )
+        # twi_ip.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled )
+        self.ui.SavedNetgameTable.setItem(0, 0, twi_title)
+        self.ui.SavedNetgameTable.setItem(0, 1, twi_ip)
+        self.ui.SavedNetgameTable.setItem(0, 2, twi_port)
         self.ui.BrowseNetgameTable.resizeColumnsToContents()
 
         self.save_server_list()
         self.ui.MSStatusLabel.setText('"{}" successfully bookmarked.'.format(name))
-        return
-
-    def open_server_editor(self):
-        ip = self.saved_server_ips[self.ui.SavedNetgameTable.currentRow()]
-        name = self.ui.ServerList.selectedItems()[0].text()
-        self.childWindow = edit_server_main.ChildWindow(self, name, ip, False)
-        self.childWindow.show()
         return
 
     def edit_selected_server(self, name, ip):
@@ -1025,8 +1015,8 @@ class MainWindow(QMainWindow):
         downcounter = 0
         for row in self.ui.SavedNetgameTable.selectionModel().selectedRows():
             self.saved_server_ips.pop(row.row())
-            self.ui.SavedNetgameTable.removeRow(row.row()+downcounter)
-            downcounter = downcounter-1
+            self.ui.SavedNetgameTable.removeRow(row.row() + downcounter)
+            downcounter = downcounter - 1
         self.save_server_list()
         return
 
@@ -1034,8 +1024,8 @@ class MainWindow(QMainWindow):
         """Join current selected server in list
         """
         ipString = "{}:{}".format(
-            self.ui.SavedNetgameTable.item( self.ui.SavedNetgameTable.currentRow(), 1 ).text(),
-            self.ui.SavedNetgameTable.item( self.ui.SavedNetgameTable.currentRow(), 2 ).text(),
+            self.ui.SavedNetgameTable.item(self.ui.SavedNetgameTable.currentRow(), 1).text(),
+            self.ui.SavedNetgameTable.item(self.ui.SavedNetgameTable.currentRow(), 2).text(),
         )
         subprocess.Popen(self.get_client_launch_command() + ["-connect" + ipString])
         return
@@ -1044,11 +1034,11 @@ class MainWindow(QMainWindow):
         """Join direct address
         """
         ipString = self.ui.JoinAddressInput.text()
-        subprocess.Popen(self.get_client_launch_command() + ["-connect" , ipString])
+        subprocess.Popen(self.get_client_launch_command() + ["-connect", ipString])
         return
 
     # Saved Master Servers
-    def update_ms_list_in_ui(self): 
+    def update_ms_list_in_ui(self):
         print("update_ms_list_in_ui")
         # Add combobox Mutex to avoid event loops
         self.ui.BrowseMSCombobox.blockSignals(True)
@@ -1060,22 +1050,24 @@ class MainWindow(QMainWindow):
         self.ui.SnitchdestCombobox.clear()
         # We only need the first column (names)
         rows = self.ui.MasterServersTable.rowCount()
-        #self.ui.BrowseMSCombobox.insertItem( 0, "All")
+        # self.ui.BrowseMSCombobox.insertItem( 0, "All")
         for i in range(0, rows):
             ms_name = self.ui.MasterServersTable.item(i, 0).text()
             ms_url = self.ui.MasterServersTable.item(i, 1).text()
             ms_api = self.ui.MasterServersTable.cellWidget(i, 2).currentData()
-            self.ui.BrowseMSCombobox.insertItem( self.ui.BrowseMSCombobox.count(), ms_name)
-            if self.ui.MasterServersTable.cellWidget(i, 2).currentData() == "snitch": # Fetch-from-Snitch
-               self.ui.SnitchsrcCombobox.insertItem( self.ui.SnitchsrcCombobox.count(), ms_name, {"url": ms_url, "api": ms_api})
-               self.ui.HostMSCombobox.insertItem( self.ui.HostMSCombobox.count(), ms_url.rstrip('/')+'/v1')
-               self.ui.SnitchdestCombobox.insertItem( self.ui.SnitchdestCombobox.count(), ms_url, ms_api)
-            elif self.ui.MasterServersTable.cellWidget(i, 2).currentData() == "kartv2": # Kart API
-               ## No Kart servers for snitching (yet)
-               self.ui.HostMSCombobox.insertItem( self.ui.HostMSCombobox.count(), ms_url, ms_api)
-            elif self.ui.MasterServersTable.cellWidget(i, 2).currentData() == "v1": # Mirror V1 servers
-               self.ui.SnitchsrcCombobox.insertItem( self.ui.SnitchsrcCombobox.count(), ms_name, {"url": ms_url, "api": ms_api})
-               self.ui.HostMSCombobox.insertItem( self.ui.HostMSCombobox.count(), ms_url, ms_api)
+            self.ui.BrowseMSCombobox.insertItem(self.ui.BrowseMSCombobox.count(), ms_name)
+            if self.ui.MasterServersTable.cellWidget(i, 2).currentData() == "snitch":  # Fetch-from-Snitch
+                self.ui.SnitchsrcCombobox.insertItem(self.ui.SnitchsrcCombobox.count(), ms_name,
+                                                     {"url": ms_url, "api": ms_api})
+                self.ui.HostMSCombobox.insertItem(self.ui.HostMSCombobox.count(), ms_url.rstrip('/') + '/v1')
+                self.ui.SnitchdestCombobox.insertItem(self.ui.SnitchdestCombobox.count(), ms_url, ms_api)
+            elif self.ui.MasterServersTable.cellWidget(i, 2).currentData() == "kartv2":  # Kart API
+                ## No Kart servers for snitching (yet)
+                self.ui.HostMSCombobox.insertItem(self.ui.HostMSCombobox.count(), ms_url, ms_api)
+            elif self.ui.MasterServersTable.cellWidget(i, 2).currentData() == "v1":  # Mirror V1 servers
+                self.ui.SnitchsrcCombobox.insertItem(self.ui.SnitchsrcCombobox.count(), ms_name,
+                                                     {"url": ms_url, "api": ms_api})
+                self.ui.HostMSCombobox.insertItem(self.ui.HostMSCombobox.count(), ms_url, ms_api)
 
         self.ui.MasterServersTable.resizeColumnsToContents()
 
@@ -1084,7 +1076,7 @@ class MainWindow(QMainWindow):
         self.ui.BrowseMSCombobox.blockSignals(False)
         return
 
-    def load_ms_list(self): 
+    def load_ms_list(self):
         print("load_ms_list")
         self.ms_list = {}
         fpath = os.path.join(os.getcwd(), "masterservers.toml")
@@ -1098,16 +1090,16 @@ class MainWindow(QMainWindow):
         for ms in self.ms_list:
             print("MS list:", self.ms_list)
             self.add_ms_to_list(
-                #self.ms_list[ms]["name"],
+                # self.ms_list[ms]["name"],
                 ms,
                 self.ms_list[ms]["url"],
                 self.ms_list[ms]["api"],
-                )
+            )
 
         self.update_ms_list_in_ui()
         return
 
-    def save_ms_list(self): 
+    def save_ms_list(self):
         print("save_ms_list")
         self.ms_list = {}
         for i in range(self.ui.MasterServersTable.rowCount()):
@@ -1122,46 +1114,46 @@ class MainWindow(QMainWindow):
             if self.ui.MasterServersTable.cellWidget(i, 2).currentData() != None:
                 shim_api = self.ui.MasterServersTable.cellWidget(i, 2).currentData()
 
-            data = {"url": shim_url, "api": shim_api }
+            data = {"url": shim_url, "api": shim_api}
             self.ms_list[shim_name] = data
         with open("masterservers.toml", "w") as f:
             toml.dump({"masterservers": self.ms_list}, f)
         self.load_ms_list()
         return
 
-    def add_new_ms_to_list(self): 
+    def add_new_ms_to_list(self):
         print("add_new_ms_to_list")
         self.add_ms_to_list("Dummy MS", "http://localhost/v1", "v1")
         return
 
-    def add_ms_to_list(self, name, url, api): 
+    def add_ms_to_list(self, name, url, api):
         print("add_ms_to_list")
-        self.ui.MasterServersTable.insertRow( self.ui.MasterServersTable.rowCount() )
+        self.ui.MasterServersTable.insertRow(self.ui.MasterServersTable.rowCount())
 
         twi_name = QtWidgets.QTableWidgetItem(name)
         twi_url = QtWidgets.QTableWidgetItem(url)
         # Add combobox for API selection
         twi_api = QtWidgets.QComboBox()
-        #twi_api.addItems(["v1", "kartv2", "snitch"])
+        # twi_api.addItems(["v1", "kartv2", "snitch"])
         twi_api.addItem("SRB2 MS", "v1")
         twi_api.addItem("SRB2Kart MS", "kartv2")
         twi_api.addItem("LiquidMS Snitch", "snitch")
         twi_api.setCurrentIndex(twi_api.findData(api))
-        twi_name.setTextAlignment( Qt.AlignHCenter|Qt.AlignVCenter )
-        twi_url.setTextAlignment( Qt.AlignHCenter|Qt.AlignVCenter )
+        twi_name.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        twi_url.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
 
-        self.ui.MasterServersTable.setItem( self.ui.MasterServersTable.rowCount()-1 , 0, twi_name )
-        self.ui.MasterServersTable.setItem( self.ui.MasterServersTable.rowCount()-1 , 1, twi_url )
+        self.ui.MasterServersTable.setItem(self.ui.MasterServersTable.rowCount() - 1, 0, twi_name)
+        self.ui.MasterServersTable.setItem(self.ui.MasterServersTable.rowCount() - 1, 1, twi_url)
         # Add combobox
-        self.ui.MasterServersTable.setCellWidget(self.ui.MasterServersTable.rowCount()-1 , 2, twi_api)
+        self.ui.MasterServersTable.setCellWidget(self.ui.MasterServersTable.rowCount() - 1, 2, twi_api)
         return
 
-    def remove_ms_from_list(self): 
+    def remove_ms_from_list(self):
         print("remove_ms_from_list")
         downcounter = 0
         for row in self.ui.MasterServersTable.selectionModel().selectedRows():
-            self.ui.MasterServersTable.removeRow( row.row() + downcounter)
-            downcounter = downcounter-1
+            self.ui.MasterServersTable.removeRow(row.row() + downcounter)
+            downcounter = downcounter - 1
         return
 
     # Settings and profiles
@@ -1169,10 +1161,10 @@ class MainWindow(QMainWindow):
     def closeEvent(self, e):
         self.save_all()
         return
-    
+
     def save_all(self):
         self.save_settings()
-        #self.save_global_settings_file()
+        # self.save_global_settings_file()
         self.save_profile_file(self.global_settings["current_profile"])
 
     def applicationStarted(self):
@@ -1186,11 +1178,11 @@ class MainWindow(QMainWindow):
         self.create_default_profile()
 
         self.load_global_settings()
-        self.check_version_sig.emit(versionString) # Launch early for async speed
-        self.ui.RSSRefreshButton.clicked.emit() # "Virtual click" to fetch news
+        self.check_version_sig.emit(versionString)  # Launch early for async speed
+        self.ui.RSSRefreshButton.clicked.emit()  # "Virtual click" to fetch news
 
-        self.load_ms_list() # Load MSes to be used
-        self.load_server_list() # Load Bookmarks
+        self.load_ms_list()  # Load MSes to be used
+        self.load_server_list()  # Load Bookmarks
         self.load_current_profile()
         try:
             self.query_ms()  # populates master server list
@@ -1203,10 +1195,10 @@ class MainWindow(QMainWindow):
         """This loads the global settings file, which is different from profiles
         """
         config_data = {}
-        
+
         if not self.config_file_exists(toml_file):
-            return None 
-        
+            return None
+
         config_data = toml.load(toml_file)
 
         return config_data
@@ -1215,14 +1207,14 @@ class MainWindow(QMainWindow):
         print("update_modsources()")
         # kludge. dunno where else to stuff it
         self.global_settings["modsources"].update({
-                "srb2mb": self.ui.ModsourceMBCheckbox.isChecked(),
-                "workshop_blue": self.ui.ModsourceWSBlueCheckbox.isChecked(),
-                "workshop_red": self.ui.ModsourceWSRedCheckbox.isChecked(),
-                "skybase": self.ui.ModsourceSkybaseCheckbox.isChecked(),
-                #"wadarchive": self.ui.ModsourceWadarchiveCheckbox.isChecked(),
-                "wadarchive": False, # Dummy until Wad Archive is supported (probably never; site is down)
-                "gamebanana": self.ui.ModsourceGamebananaCheckbox.isChecked(),
-                })
+            "srb2mb": self.ui.ModsourceMBCheckbox.isChecked(),
+            "workshop_blue": self.ui.ModsourceWSBlueCheckbox.isChecked(),
+            "workshop_red": self.ui.ModsourceWSRedCheckbox.isChecked(),
+            "skybase": self.ui.ModsourceSkybaseCheckbox.isChecked(),
+            # "wadarchive": self.ui.ModsourceWadarchiveCheckbox.isChecked(),
+            "wadarchive": False,  # Dummy until Wad Archive is supported (probably never; site is down)
+            "gamebanana": self.ui.ModsourceGamebananaCheckbox.isChecked(),
+        })
         print(self.global_settings["modsources"])
 
     def set_current_profile(self, profile):
@@ -1239,19 +1231,19 @@ class MainWindow(QMainWindow):
         self.ui.GameProfileComboBox.setCurrentText(iprofile)
         self.ui.GameProfileComboBox.blockSignals(False)
         self.load_current_profile()
-    
+
     def verify_global_settings_integrity(self):
         """Verifies that profile files specified in the global settings file
         all exist.
         """
         pass
         # TODO
-    
+
     def add_profile(self):
         filename, res = QInputDialog.getText(self, 'Create new profile', 'Filename:')
         if res and filename:
             if not filename.endswith(".toml"):
-                filename = filename+".toml"
+                filename = filename + ".toml"
             self.save_profile_file(filename)
             self.refresh_profiles(filename)
         self.ui.ProfilesStatusLabel.setText("{} succesfully added.".format(filename))
@@ -1260,19 +1252,19 @@ class MainWindow(QMainWindow):
         profilepath = os.path.join(
             self.global_settings["profiles_dir"],
             self.ui.GameProfileComboBox.currentText()
-            )
+        )
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Warning)
-        msg.setText("Do you really wanna delete {}? This cannot be undone.".format(profilepath) )
+        msg.setText("Do you really wanna delete {}? This cannot be undone.".format(profilepath))
         msg.setWindowTitle("Delete profile?")
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
         res = msg.exec()
         if res == QMessageBox.Yes:
             # Delete old profile file:
             os.remove(profilepath)
-            self.refresh_profiles(-1) # Select the first one
+            self.refresh_profiles(-1)  # Select the first one
 
-    def refresh_profiles(self, newprof = None):
+    def refresh_profiles(self, newprof=None):
         profiles = self.find_profile_files_in_dir()
         self.ui.GameProfileComboBox.blockSignals(True)
         self.ui.GameProfileComboBox.clear()
@@ -1294,7 +1286,7 @@ class MainWindow(QMainWindow):
         if not self.global_settings_exist():
             self.create_settings_on_first_run()
             print("Creating settings on first run!")
-        
+
         toml_settings = self.read_config_file(global_settings_file)
         self.global_settings.update(toml_settings)
 
@@ -1314,19 +1306,19 @@ class MainWindow(QMainWindow):
         current_profile_file = self.global_settings["current_profile"]
         self.current_profile_settings = self.read_config_file(
             current_profile_file)
-    
+
     def default_profile_exists(self):
         if self.global_settings == None:
             return False
         else:
             default_path = os.path.join(os.path.join(os.getcwd(), "ll_profiles"), "default.toml")
             return self.profile_exists(default_path)
-    
+
     def global_settings_exist(self):
         return self.config_file_exists(global_settings_file)
-    
+
     def profile_exists(self, name=None):
-        if not os.path.isfile(self.global_settings["profiles_dir"]+"default.toml"):
+        if not os.path.isfile(self.global_settings["profiles_dir"] + "default.toml"):
             return False
 
         fpath = os.path.join(self.global_settings["profiles_dir"], name)
@@ -1334,12 +1326,12 @@ class MainWindow(QMainWindow):
 
     def config_file_exists(self, config_file):
         fpath = os.path.join(os.getcwd(), config_file)
-        #fpath = config_file
+        # fpath = config_file
         if not os.path.isfile(fpath):
             return False
         else:
             return True
-    
+
     def find_profile_files_in_dir(self):
         """Finds all profile .toml files in a directory
         """
@@ -1350,7 +1342,7 @@ class MainWindow(QMainWindow):
                 if file.endswith(".toml"):
                     profile_files.append(file)
         return profile_files
-    
+
     def save_global_settings_file(self):
         """This saves the global settings, which is different from profiles
         """
@@ -1367,7 +1359,7 @@ class MainWindow(QMainWindow):
         self.update_modsources()
         self.rss_commit()
         self.save_global_settings_file()
-    
+
     def rss_commit(self):
         feeds = []
         self.ui.RSSFeedCombobox.clear()
@@ -1377,18 +1369,19 @@ class MainWindow(QMainWindow):
         self.global_settings["rss"] = feeds
 
     def create_default_settings(self):
-        if not os.path.isfile(os.path.join(os.getcwd(),"ll_settings.toml")):
+        if not os.path.isfile(os.path.join(os.getcwd(), "ll_settings.toml")):
             print("No global settings. Creating default...")
             self.save_global_settings_file()
+
     def create_default_ms_list(self):
-        if not os.path.isfile(os.path.join(os.getcwd(),"masterservers.toml")):
+        if not os.path.isfile(os.path.join(os.getcwd(), "masterservers.toml")):
             print("No master servers file. Creating default...")
             self.ms_list = {
-                "Astronight": {"url":"http://24.193.201.61/" , "api":"snitch"},
-                "InFTord": {"url":"https://lms.inftord.tech/" , "api":"snitch"},
-                "STJr": {"url":"https://mb.srb2.org/MS/0" , "api":"v1"},
-                "Kart Krew": {"url":"https://ms.kartkrew.org/ms/api/games/SRB2Kart/10" , "api":"kartv2"},
-                }
+                "Astronight": {"url": "http://24.193.201.61/", "api": "snitch"},
+                "InFTord": {"url": "https://lms.inftord.tech/", "api": "snitch"},
+                "STJr": {"url": "https://mb.srb2.org/MS/0", "api": "v1"},
+                "Kart Krew": {"url": "https://ms.kartkrew.org/ms/api/games/SRB2Kart/10", "api": "kartv2"},
+            }
             self.ui.MasterServersTable.setRowCount(0)
             for ms in self.ms_list:
                 print("MS list:", self.ms_list)
@@ -1396,30 +1389,32 @@ class MainWindow(QMainWindow):
                     ms,
                     self.ms_list[ms]["url"],
                     self.ms_list[ms]["api"],
-                    )
+                )
             self.update_ms_list_in_ui()
             self.save_ms_list()
+
     def create_default_bookmarks(self):
-        if not os.path.isfile(os.path.join(os.getcwd(),"bookmarks.toml")):
+        if not os.path.isfile(os.path.join(os.getcwd(), "bookmarks.toml")):
             print("No bookmarks file. Creating default...")
             self.save_server_list()
+
     def create_default_profile(self):
-        if not os.path.isfile(os.path.join(self.global_settings["profiles_dir"],"default.toml")):
+        if not os.path.isfile(os.path.join(self.global_settings["profiles_dir"], "default.toml")):
             print("No default profile. Creating default...")
             self.save_profile_file(self.global_settings["current_profile"])
-    
+
     def load_current_profile(self):
         print("Current profile: {}".format(self.global_settings["current_profile"]))
         self.current_profile_settings = self.read_config_file(
             os.path.join(self.global_settings["profiles_dir"], self.global_settings["current_profile"])
-            )
+        )
         print("Current profile settings: {}".format(self.current_profile_settings))
         self.apply_profile_settings_to_gui(self.current_profile_settings)
-        
+
     def load_different_profile(self, profile):
         # Stub Obsolete the way set_current_profile calls the loader
         self.set_current_profile(profile)
-        
+
     def get_profile_dict_from_file(self, profile_filename):
         """Gets profile settings as a dictionary from a profile TOML file
 
@@ -1439,27 +1434,26 @@ class MainWindow(QMainWindow):
             profile TOML file
         """
         # Load modsources from global_settings
-        self.ui.ModsourceMBCheckbox.setChecked( self.global_settings["modsources"]["srb2mb"])
-        self.ui.ModsourceWSBlueCheckbox.setChecked( self.global_settings["modsources"]["workshop_blue"])
-        self.ui.ModsourceWSRedCheckbox.setChecked( self.global_settings["modsources"]["workshop_red"])
-        self.ui.ModsourceSkybaseCheckbox.setChecked( self.global_settings["modsources"]["skybase"])
-        #self.ui.ModsourceWadarchiveCheckbox.setChecked( self.global_settings["modsources"]["wadarchive"])
-        self.ui.ModsourceGamebananaCheckbox.setChecked( self.global_settings["modsources"]["gamebanana"])
-
+        self.ui.ModsourceMBCheckbox.setChecked(self.global_settings["modsources"]["srb2mb"])
+        self.ui.ModsourceWSBlueCheckbox.setChecked(self.global_settings["modsources"]["workshop_blue"])
+        self.ui.ModsourceWSRedCheckbox.setChecked(self.global_settings["modsources"]["workshop_red"])
+        self.ui.ModsourceSkybaseCheckbox.setChecked(self.global_settings["modsources"]["skybase"])
+        # self.ui.ModsourceWadarchiveCheckbox.setChecked( self.global_settings["modsources"]["wadarchive"])
+        self.ui.ModsourceGamebananaCheckbox.setChecked(self.global_settings["modsources"]["gamebanana"])
 
         # ===== Apply profile settings ===== #
         # Headless & client settings
-        self.ui.PlayerNameInput.setText( profile_settings_dict["player"]["name"] )
-        self.ui.PlayerSkinInput.setCurrentText( profile_settings_dict["player"]["skin"] )
-        self.ui.PlayerColorInput.setCurrentText( profile_settings_dict["player"]["color"] )
-        self.ui.GameHorizontalResolutionInput.setText( profile_settings_dict["game"]["resolution"]["width"] )
-        self.ui.GameVerticalResolutionInput.setText( profile_settings_dict["game"]["resolution"]["height"] )
-        self.ui.GameRendererSetting.setCurrentIndex( profile_settings_dict["game"]["renderer"] )
-        self.ui.GameFullscreenSetting.setCurrentIndex( profile_settings_dict["game"]["windowmode"] )
-        self.ui.GameMusicSetting.setCurrentIndex( profile_settings_dict["game"]["music"] )
-        self.ui.GameSoundSetting.setCurrentIndex( profile_settings_dict["game"]["sound"] )
-        self.ui.GameExecFilePathInput.setText( profile_settings_dict["game"]["exepath"] )
-        self.ui.GameArgsInput.setText( profile_settings_dict["game"]["cliargs"] )
+        self.ui.PlayerNameInput.setText(profile_settings_dict["player"]["name"])
+        self.ui.PlayerSkinInput.setCurrentText(profile_settings_dict["player"]["skin"])
+        self.ui.PlayerColorInput.setCurrentText(profile_settings_dict["player"]["color"])
+        self.ui.GameHorizontalResolutionInput.setText(profile_settings_dict["game"]["resolution"]["width"])
+        self.ui.GameVerticalResolutionInput.setText(profile_settings_dict["game"]["resolution"]["height"])
+        self.ui.GameRendererSetting.setCurrentIndex(profile_settings_dict["game"]["renderer"])
+        self.ui.GameFullscreenSetting.setCurrentIndex(profile_settings_dict["game"]["windowmode"])
+        self.ui.GameMusicSetting.setCurrentIndex(profile_settings_dict["game"]["music"])
+        self.ui.GameSoundSetting.setCurrentIndex(profile_settings_dict["game"]["sound"])
+        self.ui.GameExecFilePathInput.setText(profile_settings_dict["game"]["exepath"])
+        self.ui.GameArgsInput.setText(profile_settings_dict["game"]["cliargs"])
         try:
             if profile_settings_dict["settings"]["binmode"] == "wine":
                 self.ui.NativeRadiobutton.setChecked(False)
@@ -1489,118 +1483,117 @@ class MainWindow(QMainWindow):
                 self.add_file(f)
 
         # General Tab
-        self.ui.ServerNameInput.setText( profile_settings_dict["host"]["hostname"] )
-        self.ui.AdminPasswordInput.setText( profile_settings_dict["host"]["password"] )
-        self.ui.RoomInput.setCurrentIndex( profile_settings_dict["host"]["room"] )
-        self.ui.HostMSCombobox.setCurrentText( profile_settings_dict["host"]["masterserver"] )
-        self.ui.DedicatedServerToggle.setChecked( profile_settings_dict["host"]["dedicated"] )
+        self.ui.ServerNameInput.setText(profile_settings_dict["host"]["hostname"])
+        self.ui.AdminPasswordInput.setText(profile_settings_dict["host"]["password"])
+        self.ui.RoomInput.setCurrentIndex(profile_settings_dict["host"]["room"])
+        self.ui.HostMSCombobox.setCurrentText(profile_settings_dict["host"]["masterserver"])
+        self.ui.DedicatedServerToggle.setChecked(profile_settings_dict["host"]["dedicated"])
         ## Networking section
-        self.ui.PortInput.setValue( profile_settings_dict["host"]["port"] )
-        self.ui.Ipv6Checkbox.setChecked( profile_settings_dict["host"]["ipv6"] )
-        self.ui.BandwidthInput.setValue( profile_settings_dict["host"]["bandwidth"] )
-        self.ui.ExtraticInput.setValue( profile_settings_dict["host"]["extratic"] )
-        self.ui.UpnpCheckbox.setChecked( profile_settings_dict["host"]["upnp"] )
-        self.ui.UploadToggle.setChecked( profile_settings_dict["host"]["downloading"] )
-        self.ui.DownloadspeedInput.setValue( profile_settings_dict["host"]["downloadspeed"] )
-        self.ui.MaxsendInput.setValue( profile_settings_dict["host"]["maxsend"] )
-        self.ui.MaxpingInput.setValue( profile_settings_dict["host"]["maxping"] )
-        self.ui.ResynchattemptsInput.setValue( profile_settings_dict["host"]["resynchattempts"] )
+        self.ui.PortInput.setValue(profile_settings_dict["host"]["port"])
+        self.ui.Ipv6Checkbox.setChecked(profile_settings_dict["host"]["ipv6"])
+        self.ui.BandwidthInput.setValue(profile_settings_dict["host"]["bandwidth"])
+        self.ui.ExtraticInput.setValue(profile_settings_dict["host"]["extratic"])
+        self.ui.UpnpCheckbox.setChecked(profile_settings_dict["host"]["upnp"])
+        self.ui.UploadToggle.setChecked(profile_settings_dict["host"]["downloading"])
+        self.ui.DownloadspeedInput.setValue(profile_settings_dict["host"]["downloadspeed"])
+        self.ui.MaxsendInput.setValue(profile_settings_dict["host"]["maxsend"])
+        self.ui.MaxpingInput.setValue(profile_settings_dict["host"]["maxping"])
+        self.ui.ResynchattemptsInput.setValue(profile_settings_dict["host"]["resynchattempts"])
         # Game Tab
-        self.ui.GametypeInput.setCurrentIndex( profile_settings_dict["host"]["gametype"] )
-        self.ui.AdvanceMapInput.setCurrentIndex( profile_settings_dict["host"]["advancemap"] )
-        self.ui.PointLimitInput.setValue( profile_settings_dict["host"]["pointlimit"] )
-        self.ui.AllowexitlevelCheckbox.setChecked( profile_settings_dict["host"]["allowexitlevel"] )
-        self.ui.ExitmoveCheckbox.setChecked( profile_settings_dict["host"]["exitmove"] )
-        self.ui.MaxPlayersInput.setValue( profile_settings_dict["host"]["maxplayers"] )
-        self.ui.JoinnextroundCheckbox.setChecked( profile_settings_dict["host"]["joinnextround"] )
-        self.ui.ForceSkinInput.setCurrentText( profile_settings_dict["host"]["forceskin"] )
-        self.ui.RestrictskinchangesCheckbox.setChecked( profile_settings_dict["host"]["restrictskinchanges"] )
-        self.ui.TailspickupCheckbox.setChecked( profile_settings_dict["host"]["tailspickup"] )
-        self.ui.RespawnitemtimeInput.setValue( profile_settings_dict["host"]["respawnitemtime"] )
-        self.ui.RespawnitemCheckbox.setChecked( profile_settings_dict["host"]["respawnitem"] )
-        self.ui.Tv_1upInput.setValue( profile_settings_dict["host"]["tv_1up"] )
-        self.ui.Tv_invincibilityInput.setValue( profile_settings_dict["host"]["tv_invincibility"] )
-        self.ui.Tv_supersneakersInput.setValue( profile_settings_dict["host"]["tv_supersneakers"] )
-        self.ui.Tv_bombshieldInput.setValue( profile_settings_dict["host"]["tv_bombshield"] )
-        self.ui.Tv_forceshieldInput.setValue( profile_settings_dict["host"]["tv_forceshield"] )
-        self.ui.Tv_jumpshieldInput.setValue( profile_settings_dict["host"]["tv_jumpshield"] )
-        self.ui.Tv_ringshieldInput.setValue( profile_settings_dict["host"]["tv_ringshield"] )
-        self.ui.Tv_watershieldInput.setValue( profile_settings_dict["host"]["tv_watershield"] )
-        self.ui.Tv_eggmanInput.setValue( profile_settings_dict["host"]["tv_eggman"] )
-        self.ui.Tv_superringInput.setValue( profile_settings_dict["host"]["tv_superring"] )
-        self.ui.Tv_teleporterInput.setValue( profile_settings_dict["host"]["tv_teleporter"] )
-        self.ui.Tv_recyclerInput.setValue( profile_settings_dict["host"]["tv_recycler"] )
-        self.ui.SoniccdCheckbox.setChecked( profile_settings_dict["host"]["soniccd"] )
-        self.ui.KillingdeadCheckbox.setChecked( profile_settings_dict["host"]["killingdead"] )
+        self.ui.GametypeInput.setCurrentIndex(profile_settings_dict["host"]["gametype"])
+        self.ui.AdvanceMapInput.setCurrentIndex(profile_settings_dict["host"]["advancemap"])
+        self.ui.PointLimitInput.setValue(profile_settings_dict["host"]["pointlimit"])
+        self.ui.AllowexitlevelCheckbox.setChecked(profile_settings_dict["host"]["allowexitlevel"])
+        self.ui.ExitmoveCheckbox.setChecked(profile_settings_dict["host"]["exitmove"])
+        self.ui.MaxPlayersInput.setValue(profile_settings_dict["host"]["maxplayers"])
+        self.ui.JoinnextroundCheckbox.setChecked(profile_settings_dict["host"]["joinnextround"])
+        self.ui.ForceSkinInput.setCurrentText(profile_settings_dict["host"]["forceskin"])
+        self.ui.RestrictskinchangesCheckbox.setChecked(profile_settings_dict["host"]["restrictskinchanges"])
+        self.ui.TailspickupCheckbox.setChecked(profile_settings_dict["host"]["tailspickup"])
+        self.ui.RespawnitemtimeInput.setValue(profile_settings_dict["host"]["respawnitemtime"])
+        self.ui.RespawnitemCheckbox.setChecked(profile_settings_dict["host"]["respawnitem"])
+        self.ui.Tv_1upInput.setValue(profile_settings_dict["host"]["tv_1up"])
+        self.ui.Tv_invincibilityInput.setValue(profile_settings_dict["host"]["tv_invincibility"])
+        self.ui.Tv_supersneakersInput.setValue(profile_settings_dict["host"]["tv_supersneakers"])
+        self.ui.Tv_bombshieldInput.setValue(profile_settings_dict["host"]["tv_bombshield"])
+        self.ui.Tv_forceshieldInput.setValue(profile_settings_dict["host"]["tv_forceshield"])
+        self.ui.Tv_jumpshieldInput.setValue(profile_settings_dict["host"]["tv_jumpshield"])
+        self.ui.Tv_ringshieldInput.setValue(profile_settings_dict["host"]["tv_ringshield"])
+        self.ui.Tv_watershieldInput.setValue(profile_settings_dict["host"]["tv_watershield"])
+        self.ui.Tv_eggmanInput.setValue(profile_settings_dict["host"]["tv_eggman"])
+        self.ui.Tv_superringInput.setValue(profile_settings_dict["host"]["tv_superring"])
+        self.ui.Tv_teleporterInput.setValue(profile_settings_dict["host"]["tv_teleporter"])
+        self.ui.Tv_recyclerInput.setValue(profile_settings_dict["host"]["tv_recycler"])
+        self.ui.SoniccdCheckbox.setChecked(profile_settings_dict["host"]["soniccd"])
+        self.ui.KillingdeadCheckbox.setChecked(profile_settings_dict["host"]["killingdead"])
         # Co-op Tab
-        self.ui.CoopSettingsCheckbox.setChecked( profile_settings_dict["host"]["applycoop"] )
-        self.ui.StartinglivesInput.setValue( profile_settings_dict["host"]["startinglives"] )
-        self.ui.PlayersforexitCombobox.setCurrentIndex( profile_settings_dict["host"]["playersforexit"] )
-        self.ui.CompetitionboxesCombobox.setCurrentIndex( profile_settings_dict["host"]["competitionboxes"] )
+        self.ui.CoopSettingsCheckbox.setChecked(profile_settings_dict["host"]["applycoop"])
+        self.ui.StartinglivesInput.setValue(profile_settings_dict["host"]["startinglives"])
+        self.ui.PlayersforexitCombobox.setCurrentIndex(profile_settings_dict["host"]["playersforexit"])
+        self.ui.CompetitionboxesCombobox.setCurrentIndex(profile_settings_dict["host"]["competitionboxes"])
         # Ringslinger Tab
-        self.ui.RingslingerSettingsCheckbox.setChecked( profile_settings_dict["host"]["applyringslinger"] )
-        self.ui.PointLimitInput.setValue( profile_settings_dict["host"]["pointlimit"] )
-        self.ui.MatchscoringCombobox.setCurrentIndex( profile_settings_dict["host"]["matchscoring"] )
-        self.ui.TimeLimitInput.setValue( profile_settings_dict["host"]["timelimit"] )
-        self.ui.OvertimeCheckbox.setChecked( profile_settings_dict["host"]["overtime"] )
-        self.ui.RespawndelayInput.setValue( profile_settings_dict["host"]["respawndelay"] )
-        self.ui.SuddenDeathToggle.setChecked( profile_settings_dict["host"]["suddendeath"] )
-        self.ui.DisableWeaponsToggle.setChecked( profile_settings_dict["host"]["disableweaponrings"] )
-        self.ui.PowerstonesCheckbox.setChecked( profile_settings_dict["host"]["powerstones"] )
-        self.ui.MatchboxesCombobox.setCurrentIndex( profile_settings_dict["host"]["matchboxes"] )
-        self.ui.MatchboxesCombobox.setCurrentIndex( profile_settings_dict["host"]["scrambleteams"] )
-        self.ui.AutobalanceCheckbox.setCurrentIndex( profile_settings_dict["host"]["autobalance"] )
-        self.ui.FlagtimeInput.setValue( profile_settings_dict["host"]["flagtime"] )
-        self.ui.FriendlyfireCheckbox.setChecked( profile_settings_dict["host"]["friendlyfire"] )
-        self.ui.TouchtagCheckbox.setChecked( profile_settings_dict["host"]["touchtag"] )
-        self.ui.HidetimeInput.setValue( profile_settings_dict["host"]["hidetime"] )
+        self.ui.RingslingerSettingsCheckbox.setChecked(profile_settings_dict["host"]["applyringslinger"])
+        self.ui.PointLimitInput.setValue(profile_settings_dict["host"]["pointlimit"])
+        self.ui.MatchscoringCombobox.setCurrentIndex(profile_settings_dict["host"]["matchscoring"])
+        self.ui.TimeLimitInput.setValue(profile_settings_dict["host"]["timelimit"])
+        self.ui.OvertimeCheckbox.setChecked(profile_settings_dict["host"]["overtime"])
+        self.ui.RespawndelayInput.setValue(profile_settings_dict["host"]["respawndelay"])
+        self.ui.SuddenDeathToggle.setChecked(profile_settings_dict["host"]["suddendeath"])
+        self.ui.DisableWeaponsToggle.setChecked(profile_settings_dict["host"]["disableweaponrings"])
+        self.ui.PowerstonesCheckbox.setChecked(profile_settings_dict["host"]["powerstones"])
+        self.ui.MatchboxesCombobox.setCurrentIndex(profile_settings_dict["host"]["matchboxes"])
+        self.ui.MatchboxesCombobox.setCurrentIndex(profile_settings_dict["host"]["scrambleteams"])
+        self.ui.AutobalanceCheckbox.setCurrentIndex(profile_settings_dict["host"]["autobalance"])
+        self.ui.FlagtimeInput.setValue(profile_settings_dict["host"]["flagtime"])
+        self.ui.FriendlyfireCheckbox.setChecked(profile_settings_dict["host"]["friendlyfire"])
+        self.ui.TouchtagCheckbox.setChecked(profile_settings_dict["host"]["touchtag"])
+        self.ui.HidetimeInput.setValue(profile_settings_dict["host"]["hidetime"])
         # Circuit Race Tab
-        self.ui.CircuitraceSettingsCheckbox.setChecked( profile_settings_dict["host"]["applycircuitrace"] )
-        self.ui.NumlapsInput.setValue( profile_settings_dict["host"]["numlaps"] )
-        self.ui.UsemaplapsCheckbox.setChecked( profile_settings_dict["host"]["usemaplaps"] )
-        self.ui.CountdowntimeInput.setValue( profile_settings_dict["host"]["countdowntime"] )
+        self.ui.CircuitraceSettingsCheckbox.setChecked(profile_settings_dict["host"]["applycircuitrace"])
+        self.ui.NumlapsInput.setValue(profile_settings_dict["host"]["numlaps"])
+        self.ui.UsemaplapsCheckbox.setChecked(profile_settings_dict["host"]["usemaplaps"])
+        self.ui.CountdowntimeInput.setValue(profile_settings_dict["host"]["countdowntime"])
         # Battlemod Tab
-        self.ui.BattlemodSettingsCheckbox.setChecked( profile_settings_dict["host"]["applybattlemod"] )
-        self.ui.Battle_coyotetimeInput.setValue( profile_settings_dict["host"]["battle_coyotetime"] )
-        self.ui.Battle_coyotefactorInput.setValue( profile_settings_dict["host"]["battle_coyotefactor"] )
-        self.ui.Battle_recoveryjumpCheckbox.setChecked( profile_settings_dict["host"]["battle_recoveryjump"] )
+        self.ui.BattlemodSettingsCheckbox.setChecked(profile_settings_dict["host"]["applybattlemod"])
+        self.ui.Battle_coyotetimeInput.setValue(profile_settings_dict["host"]["battle_coyotetime"])
+        self.ui.Battle_coyotefactorInput.setValue(profile_settings_dict["host"]["battle_coyotefactor"])
+        self.ui.Battle_recoveryjumpCheckbox.setChecked(profile_settings_dict["host"]["battle_recoveryjump"])
         ## Item settings
-        self.ui.Item_rateCombobox.setCurrentIndex( profile_settings_dict["host"]["item_rate"])
-        self.ui.Item_typeCombobox.setCurrentIndex( profile_settings_dict["host"]["item_type"])
-        self.ui.Item_globalCheckbox.setChecked( profile_settings_dict["host"]["item_global"])
-        self.ui.Item_localCheckbox.setChecked( profile_settings_dict["host"]["item_local"])
+        self.ui.Item_rateCombobox.setCurrentIndex(profile_settings_dict["host"]["item_rate"])
+        self.ui.Item_typeCombobox.setCurrentIndex(profile_settings_dict["host"]["item_type"])
+        self.ui.Item_globalCheckbox.setChecked(profile_settings_dict["host"]["item_global"])
+        self.ui.Item_localCheckbox.setChecked(profile_settings_dict["host"]["item_local"])
         ## Battle mode settings
-        self.ui.Survival_livesInput.setValue( profile_settings_dict["host"]["survival_lives"] )
-        self.ui.Battle_startringsInput.setValue( profile_settings_dict["host"]["battle_startrings"] )
-        self.ui.Survival_revengeCombobox.setCurrentIndex( profile_settings_dict["host"]["survival_revenge"] )
-        self.ui.Survival_suddendeathCheckbox.setChecked( profile_settings_dict["host"]["survival_suddendeath"] )
+        self.ui.Survival_livesInput.setValue(profile_settings_dict["host"]["survival_lives"])
+        self.ui.Battle_startringsInput.setValue(profile_settings_dict["host"]["battle_startrings"])
+        self.ui.Survival_revengeCombobox.setCurrentIndex(profile_settings_dict["host"]["survival_revenge"])
+        self.ui.Survival_suddendeathCheckbox.setChecked(profile_settings_dict["host"]["survival_suddendeath"])
         ## Battle/Survival settings
-        self.ui.Battle_collisionsCheckbox.setChecked( profile_settings_dict["host"]["battle_collisions"] )
-        self.ui.Battle_slipstreamsheckbox.setChecked( profile_settings_dict["host"]["battle_slipstream"] )
-        self.ui.Battle_specialCheckbox.setChecked( profile_settings_dict["host"]["battle_special"] )
-        self.ui.Battle_shieldstocksCheckbox.setChecked( profile_settings_dict["host"]["battle_shieldstocks"] )
-        self.ui.Battle_preroundCheckbox.setChecked( profile_settings_dict["host"]["battle_preround"] )
+        self.ui.Battle_collisionsCheckbox.setChecked(profile_settings_dict["host"]["battle_collisions"])
+        self.ui.Battle_slipstreamsheckbox.setChecked(profile_settings_dict["host"]["battle_slipstream"])
+        self.ui.Battle_specialCheckbox.setChecked(profile_settings_dict["host"]["battle_special"])
+        self.ui.Battle_shieldstocksCheckbox.setChecked(profile_settings_dict["host"]["battle_shieldstocks"])
+        self.ui.Battle_preroundCheckbox.setChecked(profile_settings_dict["host"]["battle_preround"])
         ## CP Ring spawns
-        self.ui.Cp_spawninfinityInput.setChecked( profile_settings_dict["host"]["cp_spawninfinity"] )
-        self.ui.Cp_spawnautoInput.setChecked( profile_settings_dict["host"]["cp_spawnauto"] )
-        self.ui.Cp_spawnbounceInput.setChecked( profile_settings_dict["host"]["cp_spawnbounce"] )
-        self.ui.Cp_spawnbombInput.setChecked( profile_settings_dict["host"]["cp_spawnbomb"] )
-        self.ui.Cp_spawngrenadeInput.setChecked( profile_settings_dict["host"]["cp_spawngrenade"] )
-        self.ui.Cp_spawnrailInput.setChecked( profile_settings_dict["host"]["cp_spawnrail"] )
-        self.ui.Cp_spawnscatterInput.setChecked( profile_settings_dict["host"]["cp_spawnscatter"] )
+        self.ui.Cp_spawninfinityInput.setChecked(profile_settings_dict["host"]["cp_spawninfinity"])
+        self.ui.Cp_spawnautoInput.setChecked(profile_settings_dict["host"]["cp_spawnauto"])
+        self.ui.Cp_spawnbounceInput.setChecked(profile_settings_dict["host"]["cp_spawnbounce"])
+        self.ui.Cp_spawnbombInput.setChecked(profile_settings_dict["host"]["cp_spawnbomb"])
+        self.ui.Cp_spawngrenadeInput.setChecked(profile_settings_dict["host"]["cp_spawngrenade"])
+        self.ui.Cp_spawnrailInput.setChecked(profile_settings_dict["host"]["cp_spawnrail"])
+        self.ui.Cp_spawnscatterInput.setChecked(profile_settings_dict["host"]["cp_spawnscatter"])
         ## Battle CTF
-        self.ui.Ctf_flagdrop_graceperiodInput.setValue( profile_settings_dict["host"]["ctf_flagdrop_graceperiod"] )
-        self.ui.Ctf_flagrespawn_graceperiodInput.setValue( profile_settings_dict["host"]["ctf_flagrespawn_graceperiod"] )
+        self.ui.Ctf_flagdrop_graceperiodInput.setValue(profile_settings_dict["host"]["ctf_flagdrop_graceperiod"])
+        self.ui.Ctf_flagrespawn_graceperiodInput.setValue(profile_settings_dict["host"]["ctf_flagrespawn_graceperiod"])
         ## Battle Diamond hunt
-        self.ui.Diamond_capture_timeInput.setValue( profile_settings_dict["host"]["diamond_capture_time"] )
-        self.ui.Diamond_capture_bonusInput.setValue( profile_settings_dict["host"]["diamond_capture_bonus"] )
+        self.ui.Diamond_capture_timeInput.setValue(profile_settings_dict["host"]["diamond_capture_time"])
+        self.ui.Diamond_capture_bonusInput.setValue(profile_settings_dict["host"]["diamond_capture_bonus"])
         ## Battle Misc
-        self.ui.Battle_addoptionsInput.setText( profile_settings_dict["host"]["battle_addoptions"] )
+        self.ui.Battle_addoptionsInput.setText(profile_settings_dict["host"]["battle_addoptions"])
 
         self.change_skin_image()
         self.ui.ProfilesStatusLabel.setText("Profile successfully loaded.")
 
-    
     def update_binmode_in_ui(self):
         if self.ui.WineRadiobutton.isChecked():
             self.ui.GameExecFilePathInput.setEnabled(True)
@@ -1632,7 +1625,7 @@ class MainWindow(QMainWindow):
                 "includefiles": True,
                 "moddir": "./ll_downloads",
             }
-            }
+        }
 
         if self.ui.WineRadiobutton.isChecked():
             toml_settings["settings"]["binmode"] = "wine"
@@ -1646,7 +1639,7 @@ class MainWindow(QMainWindow):
 
         for i in range(self.ui.GameFilesList.count()):
             toml_settings["files"].append(self.ui.GameFilesList.item(i).text())
-        
+
         toml_settings["player"]["name"] = self.ui.PlayerNameInput.text()
         toml_settings["player"]["skin"] = str(self.ui.PlayerSkinInput.currentText())
         toml_settings["player"]["color"] = self.ui.PlayerColorInput.currentText()
@@ -1768,7 +1761,7 @@ class MainWindow(QMainWindow):
         ## Battle Misc
         toml_settings["host"]["battle_addoptions"] = self.ui.Battle_addoptionsInput.text()
         return toml_settings
-    
+
     def save_profile_file(self, filename):
         """This takes GUI state, converts to a dictionary, and saves the 
         variables to a TOML file.
@@ -1779,10 +1772,10 @@ class MainWindow(QMainWindow):
         # Guarantee profiles dir
         if not os.path.isdir(self.global_settings["profiles_dir"]):
             os.makedirs(self.global_settings["profiles_dir"])
-        
+
         toml_settings = self.generate_profile_dict()
         profilepath = os.path.join(self.global_settings["profiles_dir"], filename)
-        
+
         with open(profilepath, "w") as f:
             new_toml_string = toml.dump(toml_settings, f)
 
@@ -1802,29 +1795,32 @@ class MainWindow(QMainWindow):
             out_text = ""
             if fileName.endswith(".sh"): out_text += "#!bin/bash\n"
             if self.ui.GamePageTabList.currentRow() == 3:
-                cmd = [ i if " " not in i else "\"{}\"".format(i) for i in self.get_server_launch_command()]
+                cmd = [i if " " not in i else "\"{}\"".format(i) for i in self.get_server_launch_command()]
                 out_text += ' '.join(cmd)
             else:
-                cmd = [ i if " " not in i else "\"{}\"".format(i) for i in self.get_client_launch_command()]
+                cmd = [i if " " not in i else "\"{}\"".format(i) for i in self.get_client_launch_command()]
                 out_text += ' '.join(cmd)
             with open(fileName, "w") as f:
                 f.write(out_text)
         return
 
     def on_check_version_cb(self, latest_version):
-            # check launcher version ============================================= #
-            if version.parse(latest_version) > version.parse(versionString):
-                msg = QMessageBox()
-                msg.setIcon(QMessageBox.Information)
-                msg.setText("Your version of LiquidLauncher seems to be outdated. Please download version {} from our <a href=\"https://github.com/liquidunderground/liquidlauncher/releases\">releases</a>.".format(latest_version) )
-                msg.setWindowTitle("Version {} available".format(latest_version))
-                msg.setDetailedText("Latest version of LiquidLauncher: " + latest_version+ "\nYou are currently running: " + versionString)
-                msg.setStandardButtons(QMessageBox.Ok)
-                msg.exec()
-            elif version.parse(latest_version) < version.parse(versionString):
-                print("Greetings, time traveller.")
-            else:
-                print("up-to-date (" + versionString + ")")
+        # check launcher version ============================================= #
+        if version.parse(latest_version) > version.parse(versionString):
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setText(
+                "Your version of LiquidLauncher seems to be outdated. Please download version {} from our <a href=\"https://github.com/liquidunderground/liquidlauncher/releases\">releases</a>.".format(
+                    latest_version))
+            msg.setWindowTitle("Version {} available".format(latest_version))
+            msg.setDetailedText(
+                "Latest version of LiquidLauncher: " + latest_version + "\nYou are currently running: " + versionString)
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+        elif version.parse(latest_version) < version.parse(versionString):
+            print("Greetings, time traveller.")
+        else:
+            print("up-to-date (" + versionString + ")")
 
 
 def main():

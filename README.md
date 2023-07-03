@@ -1,4 +1,4 @@
-![LiquidLauncher logo](img/liquidlauncher.svg)
+![LiquidLauncher logo](assets/liquidlauncher.svg)
 
 LiquidLauncher
 ==============
@@ -8,7 +8,7 @@ Features
 
 ### What game options? ALL OF THEM.
 
-![An absurd amount of switches](img/scr_options.png)
+![An absurd amount of switches](assets/scr_options.png)
 
 LiquidLauncher seeks to be the ultimate launcher for SRB2 and as such we
 strive to provide every game setting we can possibly find right to your
@@ -21,7 +21,7 @@ Flatpak* installations.
 
 ### Profiles and scripts
 
-![Profiles section](img/scr_profiles.png)
+![Profiles section](assets/scr_profiles.png)
 
 Wanna quickly set-up multiple netgames in one go? LiquidLauncher supports
 **live-swappable profiles** so you'll never have to remember your settings
@@ -36,7 +36,7 @@ for both client and server setups*.
 
 ### Built-in Netgame browser
 
-![Bookmarked netgames view](img/scr_masterserver.png)
+![Bookmarked netgames view](assets/scr_masterserver.png)
 
 Although based on LauncherBlast2-reBoot, we completely overhauled our
 netgame browser to provide a comfortable netgaming experience. Join active
@@ -48,7 +48,7 @@ so for any master server you can find, **including native support for [LiquidMS]
 
 ### Built-in Mod browser
 
-![Bookmarked netgames view](img/scr_modbrowser.png)
+![Bookmarked netgames view](assets/scr_modbrowser.png)
 
 Mod downloads disabled? Just use the **integrated mod browser**
 to download mods from all across the SRB2 community and have them **added
@@ -60,7 +60,7 @@ Player discretion is advised.)
 
 ### Fully featured RSS/Atom newsreader
 
-![Newsreader view](img/scr_news.png)
+![Newsreader view](assets/scr_news.png)
 
 Keep up with the latest news from Liquid, SRB2, the wider Sonic community
 or **literally any RSS feed you can find.** Seriously, just add your own
