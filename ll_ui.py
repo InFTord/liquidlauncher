@@ -2993,7 +2993,7 @@ class Ui_MainWindow(QMainWindow):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.RSSFeedCombobox.setItemText(0, QCoreApplication.translate("MainWindow", u"http://srb2.org/feed", None))
+        self.RSSFeedCombobox.setItemText(0, QCoreApplication.translate("MainWindow", u"https://srb2.org/feed", None))
 
         self.RSSFeedLabel.setText(QCoreApplication.translate("MainWindow", u"Newsfeed URL", None))
         self.RSSStatusLabel.setText(QCoreApplication.translate("MainWindow", u"Please select a feed and click \"Refresh\"", None))

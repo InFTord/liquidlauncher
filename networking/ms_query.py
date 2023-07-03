@@ -6,6 +6,7 @@ import urllib.request
 
 from ll_info import http_headers as headers
 
+
 def parse_server_line(url, server_string, room):
     server_data = server_string.split(" ")
     ip = server_data[0]
@@ -13,22 +14,23 @@ def parse_server_line(url, server_string, room):
     name = urllib.parse.unquote(server_data[2]).encode('ascii', errors='ignore').decode()
     version = server_data[3]
     server = {"ip": ip,
-            "port": port,
-            "name_plain": name,
-            "name": server_data[2],
-            "gametype": "[DUMMY]",
-            "game": "SRB2",
-            "version": version,
-            "room": room,
-            "origin": url,
-            "api": "v1",
-            }
+              "port": port,
+              "name_plain": name,
+              "name": server_data[2],
+              "gametype": "[DUMMY]",
+              "game": "SRB2",
+              "version": version,
+              "room": room,
+              "origin": url,
+              "api": "v1",
+              }
     return server
+
 
 def v1_parse_rooms(txt):
     out = {}
     roomblocks = re.split("\n{3,}", txt)
-    roomblocks = filter(lambda blk: len(blk)>1, roomblocks)
+    roomblocks = filter(lambda blk: len(blk) > 1, roomblocks)
 
     for block in roomblocks:
         roomlines = re.split("\n", block)
@@ -36,17 +38,19 @@ def v1_parse_rooms(txt):
 
     return out
 
+
 def query_ms_rooms(url):
     print("query_ms_rooms ", url)
-    ms_rooms = requests.get(url+"/rooms", headers=headers)
+    ms_rooms = requests.get(url + "/rooms", headers=headers)
 
     # Query sanity check
     if ms_rooms.status_code != requests.codes.ok:
         raise Exception('Faulty HTTP response in /rooms request ({})'.format(ms_rooms.status_code))
 
     rooms = v1_parse_rooms(ms_rooms.text)
-        
+
     return rooms
+
 
 def parse_ms_data(url):
     # TODO: Make room system MS agnostic
@@ -55,8 +59,8 @@ def parse_ms_data(url):
     #   2. Query /servers and parse servers
 
     print("parse_v1_data ", url)
-    ms_rooms = requests.get(url+"/rooms", headers=headers)
-    ms_netgames = requests.get(url+"/servers", headers=headers)
+    ms_rooms = requests.get(url + "/rooms", headers=headers)
+    ms_netgames = requests.get(url + "/servers", headers=headers)
     server_list = []
 
     # Query sanity check
@@ -67,22 +71,23 @@ def parse_ms_data(url):
 
     rooms = v1_parse_rooms(ms_rooms.text)
     netgameblocks = re.split("\n{2,}", ms_netgames.text)
-    netgameblocks = filter(lambda blk: len(blk)>1, netgameblocks)
+    netgameblocks = filter(lambda blk: len(blk) > 1, netgameblocks)
 
     for ngb in netgameblocks:
         netgamelines = re.split("\n", ngb)
         roomno = netgamelines[0]
         netgamelines.pop(0)
-        netgamelines = filter(lambda ln: len(ln)>1, netgamelines)
+        netgamelines = filter(lambda ln: len(ln) > 1, netgamelines)
         for ngl in netgamelines:
             netgame = parse_server_line(url, ngl, rooms[roomno])
             server_list.append(netgame)
-        
+
     return server_list
+
 
 def parse_kart_data(url):
     print("parse_kart_data ", url)
-    ms_data = requests.get(url+"/servers?v=2", headers=headers)
+    ms_data = requests.get(url + "/servers?v=2", headers=headers)
     server_list = []
     if ms_data.status_code != requests.codes.ok:
         raise Exception('Faulty HTTP response ({})'.format(ms_data.status_code))
@@ -107,9 +112,10 @@ def parse_kart_data(url):
 
     return server_list
 
+
 def parse_snitch_data(url):
     print("parse_snitch_data ", url)
-    ms_data = requests.get(url+"/liquidms/snitch", headers=headers)
+    ms_data = requests.get(url + "/liquidms/snitch", headers=headers)
     lines = ms_data.text.splitlines()
     server_list = []
     if ms_data.status_code != requests.codes.ok:
@@ -133,6 +139,7 @@ def parse_snitch_data(url):
 
     return server_list
 
+
 def get_server_list(url, api="v1"):
     # TODO: multi-server query. 
     # - Change API from URL+API to List of URL+API elements
@@ -150,4 +157,3 @@ def get_server_list(url, api="v1"):
         return parse_snitch_data(url_sanitized)
     else:
         return []
-    

@@ -1,10 +1,9 @@
-from enum import Enum
-from dataclasses import dataclass
-import struct
-import socket
 import html
-from collections import namedtuple36
-
+import socket
+import struct
+from dataclasses import dataclass
+from enum import Enum
+from collections import namedtuple
 
 def get_map_title(title, iszone, actnum):
     mapname = title

@@ -290,11 +290,11 @@ class MainWindow(Ui_MainWindow):
     def add_rss_to_list(self, url="https://example.com/feed"):
         new_item = QtWidgets.QListWidgetItem()
         new_item.setText(url)
-        new_item.setFlags(QtCore.Qt.ItemIsSelectable |
-                          QtCore.Qt.ItemIsEditable |
-                          QtCore.Qt.ItemIsDragEnabled |
-                          QtCore.Qt.ItemIsDropEnabled |
-                          QtCore.Qt.ItemIsEnabled
+        new_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable |
+                          QtCore.Qt.ItemFlag.ItemIsEditable |
+                          QtCore.Qt.ItemFlag.ItemIsDragEnabled |
+                          QtCore.Qt.ItemFlag.ItemIsDropEnabled |
+                          QtCore.Qt.ItemFlag.ItemIsEnabled
                           )
         self.ui.RSSFeedList.addItem(new_item)
         self.ui.RSSFeedList.setCurrentRow(self.ui.RSSFeedList.count() - 1)
@@ -304,7 +304,6 @@ class MainWindow(Ui_MainWindow):
         self.ui.RSSFeedList.takeItem(self.ui.RSSFeedList.currentRow())
 
     def rss_moveup(self):
-        reservedItems = []
         row = self.ui.RSSFeedList.currentRow()
         item = self.ui.RSSFeedList.takeItem(row)
         row -= 1
@@ -313,7 +312,6 @@ class MainWindow(Ui_MainWindow):
         return
 
     def rss_movedown(self):
-        reservedItems = []
         row = self.ui.RSSFeedList.currentRow()
         item = self.ui.RSSFeedList.takeItem(row)
         row += 1
@@ -338,7 +336,7 @@ class MainWindow(Ui_MainWindow):
         self.load_rss_sig.emit(feed)
 
     def on_load_news_cb(self, content, error=False):
-        if (error):  # Emergency error kludge
+        if error:  # Emergency error kludge
             self.ui.RSSStatusLabel.setText(content)
             print(content)
             return
@@ -404,8 +402,8 @@ class MainWindow(Ui_MainWindow):
         self.ui.PlayerSkinImage.setPixmap(
             QtGui.QPixmap(asset_img).scaled(135,
                                             190,
-                                            QtCore.Qt.KeepAspectRatio,
-                                            QtCore.Qt.FastTransformation))
+                                            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                                            QtCore.Qt.TransformationMode.FastTransformation))
         return
 
     def get_client_launch_command_headless(self):
@@ -450,7 +448,6 @@ class MainWindow(Ui_MainWindow):
 
     def get_client_launch_command(self):
 
-        com = []
         com = self.get_client_launch_command_headless()
 
         # game settings (from game settings tab) ============================= #
@@ -465,8 +462,8 @@ class MainWindow(Ui_MainWindow):
         if self.ui.GameMusicSetting.currentIndex() == 3: com += ["-nomusic"]
         if self.ui.GameSoundSetting.currentIndex() == 1: com += ["-nosound"]
         if self.ui.GameHorizontalResolutionInput.text() != "" and self.ui.GameVerticalResolutionInput.text() != "":
-            com += [" -width ", self.ui.GameHorizontalResolutionInput.text(), " -height " \
-                , self.ui.GameVerticalResolutionInput.text()]
+            com += [" -width ", self.ui.GameHorizontalResolutionInput.text(), " -height ",
+                    self.ui.GameVerticalResolutionInput.text()]
         print("CLIENT COMMAND: {}".format(com))
         return com
 
@@ -680,8 +677,9 @@ class MainWindow(Ui_MainWindow):
         new_item.setText(os.path.basename(str(f)))
         new_item_icon = QtGui.QIcon()
         filetype = str(f).split(".")[-1]
-        new_item_icon.addPixmap(QtGui.QPixmap(":/assets/assets/filetypes/" + filetype + ".png"), QtGui.QIcon.Normal,
-                                QtGui.QIcon.Off)
+        new_item_icon.addPixmap(QtGui.QPixmap(":/assets/assets/filetypes/" + filetype + ".png"),
+                                QtGui.QIcon.Mode.Normal,
+                                QtGui.QIcon.State.Off)
         new_item.setIcon(new_item_icon)
         self.ui.GameFilesList.addItem(new_item)
         return
@@ -736,7 +734,7 @@ class MainWindow(Ui_MainWindow):
         f, _ = QFileDialog.getOpenFileName(self, "Open script to execute on launch", "",
                                            "All compatible files (*.txt *.cfg);;All files (*)",
                                            options=self.FileDialogOptions)
-        if (f):
+        if f:
             self.ui.GameFilesExecScriptInput.setText(f)
 
     def launch_game_normally(self):
@@ -818,8 +816,8 @@ class MainWindow(Ui_MainWindow):
         if icon:
             qicon = QtGui.QIcon()
             qicon.addPixmap(QtGui.QPixmap(icon),
-                            QtGui.QIcon.Normal,
-                            QtGui.QIcon.Off)
+                            QtGui.QIcon.Mode.Normal,
+                            QtGui.QIcon.State.Off)
             new_item.setIcon(qicon)
         self.ui.ModsList.addItem(new_item)
 
@@ -916,11 +914,11 @@ class MainWindow(Ui_MainWindow):
             twi_gametype = QtWidgets.QTableWidgetItem(server.get("game"))
             twi_origin = QtWidgets.QTableWidgetItem(server.get("origin"))
 
-            twi_name.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-            twi_room.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-            twi_version.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-            twi_gametype.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-            twi_origin.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            twi_name.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            twi_room.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            twi_version.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            twi_gametype.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            twi_origin.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
 
             self.ui.BrowseNetgameTable.setItem(self.ui.BrowseNetgameTable.rowCount() - 1, 0, twi_name)
             self.ui.BrowseNetgameTable.setItem(self.ui.BrowseNetgameTable.rowCount() - 1, 3, twi_room)
@@ -1007,7 +1005,7 @@ class MainWindow(Ui_MainWindow):
     def edit_selected_server(self, name, ip):
         self.saved_server_ips[self.ui.SavedNetgameTable.currentRow()] = ip
         # Is this even necessary if the table is editable?
-        self.ui.ServerList.setItem(self.ui.ServerList.currentRow(), 0).setText(name)
+        self.ui.ServerListLabel.setItem(self.ui.ServerListLabel.currentRow(), 0).setText(name)
         self.save_server_list()
         return
 
@@ -1107,11 +1105,11 @@ class MainWindow(Ui_MainWindow):
             shim_url = ""
             shim_api = ""
 
-            if self.ui.MasterServersTable.item(i, 0) != None:
+            if self.ui.MasterServersTable.item(i, 0) is not None:
                 shim_name = self.ui.MasterServersTable.item(i, 0).text()
-            if self.ui.MasterServersTable.item(i, 1) != None:
+            if self.ui.MasterServersTable.item(i, 1) is not None:
                 shim_url = self.ui.MasterServersTable.item(i, 1).text()
-            if self.ui.MasterServersTable.cellWidget(i, 2).currentData() != None:
+            if self.ui.MasterServersTable.cellWidget(i, 2).currentData() is not None:
                 shim_api = self.ui.MasterServersTable.cellWidget(i, 2).currentData()
 
             data = {"url": shim_url, "api": shim_api}
@@ -1194,8 +1192,6 @@ class MainWindow(Ui_MainWindow):
     def read_config_file(self, toml_file=global_settings_file):
         """This loads the global settings file, which is different from profiles
         """
-        config_data = {}
-
         if not self.config_file_exists(toml_file):
             return None
 
@@ -1254,12 +1250,12 @@ class MainWindow(Ui_MainWindow):
             self.ui.GameProfileComboBox.currentText()
         )
         msg = QMessageBox()
-        msg.setIcon(QMessageBox.Warning)
+        msg.setIcon(QMessageBox.Icon.Warning)
         msg.setText("Do you really wanna delete {}? This cannot be undone.".format(profilepath))
         msg.setWindowTitle("Delete profile?")
-        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel)
         res = msg.exec()
-        if res == QMessageBox.Yes:
+        if res == QMessageBox.StandardButton.Yes:
             # Delete old profile file:
             os.remove(profilepath)
             self.refresh_profiles(-1)  # Select the first one
@@ -1284,7 +1280,7 @@ class MainWindow(Ui_MainWindow):
         print("load_global_settings()")
 
         if not self.global_settings_exist():
-            self.create_settings_on_first_run()
+            self.create_default_settings()
             print("Creating settings on first run!")
 
         toml_settings = self.read_config_file(global_settings_file)
@@ -1295,7 +1291,7 @@ class MainWindow(Ui_MainWindow):
 
         # Update RSS List in UI
         self.ui.RSSFeedList.clear()
-        if self.global_settings["rss"] != None:
+        if self.global_settings["rss"] is not None:
             for feed in self.global_settings["rss"]:
                 self.add_rss_to_list(feed)
 
@@ -1308,7 +1304,7 @@ class MainWindow(Ui_MainWindow):
             current_profile_file)
 
     def default_profile_exists(self):
-        if self.global_settings == None:
+        if self.global_settings is None:
             return False
         else:
             default_path = os.path.join(os.path.join(os.getcwd(), "ll_profiles"), "default.toml")
@@ -1467,7 +1463,7 @@ class MainWindow(Ui_MainWindow):
                 self.ui.NativeRadiobutton.setChecked(True)
                 self.ui.WineRadiobutton.setChecked(False)
                 self.ui.FlatpakRadiobutton.setChecked(False)
-        except Exception as e:
+        except Exception:
             print("No binmode setting found. Defaulting to \"native\".")
             self.ui.NativeRadiobutton.setChecked(True)
             self.ui.WineRadiobutton.setChecked(False)
@@ -1787,7 +1783,7 @@ class MainWindow(Ui_MainWindow):
 
     def export_script(self):
         file_filter = "Batch files (*.bat);;Shell scripts (*.sh)"
-        if (os.name == "posix"):
+        if os.name == "posix":
             file_filter = "Shell scripts (*.sh);;Batch files (*.bat)"
         file_filter += ";;All files (*)"
         fileName, _ = QFileDialog.getSaveFileName(self, "Save script", os.getcwd(), file_filter)

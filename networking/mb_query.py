@@ -72,7 +72,7 @@ wadarchive = {
     "thread": "about:wadarchive",
     "download": "about:wadarchive",
     "icon": ":/assets/assets/icons/sonichead.png",
-    #"icon": ":/assets/assets/icons/wadarchive.png",
+    # "icon": ":/assets/assets/icons/wadarchive.png",
     "vendor": "wadarchive"
 }
 
@@ -92,12 +92,12 @@ gamebanana = {
     "vendor": "gamebanana"
 }
 
-
 # Oh so sneaky:
-headers =  {'User-Agent':
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) '
-            'AppleWebKit/537.36 (KHTML, like Gecko) '
-            'Chrome/39.0.2171.95 Safari/537.36'}
+headers = {'User-Agent':
+               'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) '
+               'AppleWebKit/537.36 (KHTML, like Gecko) '
+               'Chrome/39.0.2171.95 Safari/537.36'}
+
 
 class Mod:
     def __init__(self, name, mb_info, thread_url):
@@ -121,7 +121,7 @@ class Mod:
         self.download_url = self.mb["download"].format(thread=self.thread_name, mod=self.modid)
 
         return self.download_url
-    
+
     def get_html(self):
         url = self.url
         response = requests.get(url,
@@ -139,6 +139,7 @@ class Mod:
             '//div[@class="bbWrapper"]/text()'))
         return self.description
 
+
 def get_mods_xenforo(addons_subforum_url, modsource):
     """
     Gets a list of all mods from XenForo-based subforums
@@ -154,7 +155,7 @@ def get_mods_xenforo(addons_subforum_url, modsource):
     current_data = []
     # Iterate through pages grabbing thread names and their links:
     while not last_page:
-        print("Querying page ", page_counter )
+        print("Querying page ", page_counter)
         tree = get_addons_page_html_xenforo(addons_subforum_url, page_counter)
         # Get Elements; sort our href an text later
         current_mod_elements = tree.xpath('.//div[@class="structItem-title"]/*[@data-tp-primary="on"]')
@@ -174,14 +175,15 @@ def get_mods_xenforo(addons_subforum_url, modsource):
                 el_text = el.xpath('./text()')[0]
                 current_data.append(el_href)
                 out.append({
-                        "name": el_text, 
-                        "link": parse(modsource["thread_link"],el_href)["thread"]
-                        })
+                    "name": el_text,
+                    "link": parse(modsource["thread_link"], el_href)["thread"]
+                })
         previous_data = current_data
         page_counter += 1
 
-    print("Fetched mods: ", out )
+    print("Fetched mods: ", out)
     return out
+
 
 def get_mods_vbulletin(addons_subforum_url, modsource):
     """
@@ -198,7 +200,7 @@ def get_mods_vbulletin(addons_subforum_url, modsource):
     current_data = []
     # Iterate through pages grabbing thread names and their links:
     while not last_page:
-        print("Querying page ", page_counter )
+        print("Querying page ", page_counter)
         tree = get_addons_page_html_xenforo(addons_subforum_url, page_counter)
         # Get Elements; sort our href an text later
         current_mod_elements = tree.xpath('.//*[@class="threadtitle"]/*[@class="title"]')
@@ -218,14 +220,15 @@ def get_mods_vbulletin(addons_subforum_url, modsource):
                 el_text = el.xpath('./text()')[0]
                 current_data.append(el_href)
                 out.append({
-                        "name": el_text, 
-                        "link": parse(modsource["thread_link"],el_href)["thread"]
-                        })
+                    "name": el_text,
+                    "link": parse(modsource["thread_link"], el_href)["thread"]
+                })
         previous_data = current_data
         page_counter += 1
 
-    print("Fetched mods:", out )
+    print("Fetched mods:", out)
     return out
+
 
 def get_mods_gamebanana(addons_subforum_url, modsource):
     """
@@ -240,7 +243,7 @@ def get_mods_gamebanana(addons_subforum_url, modsource):
     out = []
     # Iterate through pages grabbing thread names and their links:
     while not last_page:
-        print("Querying page ", page_counter )
+        print("Querying page ", page_counter)
         remote_data = get_addons_gamebanana(addons_subforum_url, page_counter)
         # Most of the XPath stuff is not necessary here; just give good
         # params parse some JSON. Thank uncle Sonic.
@@ -251,17 +254,18 @@ def get_mods_gamebanana(addons_subforum_url, modsource):
                 el_href = el["_idRow"]
                 el_name = el["_sName"]
                 out.append({
-                        "name": el_name, 
-                        "link": el_href
-                        })
+                    "name": el_name,
+                    "link": el_href
+                })
         else:
             # Empty response => end of data
             last_page = True
             print("Last page reached!")
         page_counter += 1
 
-    print("Fetched mods:", out )
+    print("Fetched mods:", out)
     return out
+
 
 def get_mods_wadarchive(addons_subforum_url, modsource):
     """
@@ -271,6 +275,7 @@ def get_mods_wadarchive(addons_subforum_url, modsource):
     :return: Returns a list containing Mod class instances
     """
     return []
+
 
 def get_mods(addons_subforum_url, modsource):
     """
@@ -287,23 +292,24 @@ def get_mods(addons_subforum_url, modsource):
 
     out = []
     mod_data = []
-    if modsource["vendor"] == "stjr" or modsource["vendor"] == "workshop" :
+    if modsource["vendor"] == "stjr" or modsource["vendor"] == "workshop":
         mod_data = get_mods_xenforo(addons_subforum_url, modsource)
-    elif modsource["vendor"] == "skybase" :
+    elif modsource["vendor"] == "skybase":
         mod_data = get_mods_vbulletin(addons_subforum_url, modsource)
-    elif modsource["vendor"] == "wadarchive" :
+    elif modsource["vendor"] == "wadarchive":
         mod_data = get_mods_wadarchive(addons_subforum_url, modsource)
-    elif modsource["vendor"] == "gamebanana" :
+    elif modsource["vendor"] == "gamebanana":
         mod_data = get_mods_gamebanana(addons_subforum_url, modsource)
     # Make our list of mods
-    #for index in range(len(mod_names)):
+    # for index in range(len(mod_names)):
     for i in mod_data:
-        #mod = Mod(mod_names[index], mod_links[index])
-        #mod = Mod(mod_names[index], modsource, mod_links[index])
+        # mod = Mod(mod_names[index], mod_links[index])
+        # mod = Mod(mod_names[index], modsource, mod_links[index])
         mod = Mod(i["name"], modsource, i["link"])
         out.append(mod)
 
     return out
+
 
 def get_addons_page_html_xenforo(url, page_num):
     """
@@ -319,6 +325,7 @@ def get_addons_page_html_xenforo(url, page_num):
     response.raw.decode_content = True
     return html.parse(response.raw)
 
+
 def get_addons_page_html_vbulletin(url, page_num):
     """
     SRB2 MB is broken up into subforums that sometimes have multiple pages.
@@ -332,6 +339,7 @@ def get_addons_page_html_vbulletin(url, page_num):
                             headers=headers)
     response.raw.decode_content = True
     return html.parse(response.raw)
+
 
 def get_addons_gamebanana(url, page_num):
     """
@@ -350,16 +358,19 @@ def get_addons_gamebanana(url, page_num):
         print("Unable to fetch Gamebanana mod list: {}".format(e))
         return None
 
+
 def get_mod_download_url(mod):
     if not mod.download_url:
         mod.set_download_url()
     return mod.download_url
+
 
 def get_mod_by_name(name, mod_list):
     for mod in mod_list:
         if mod.name == name:
             return mod
     return Mod("blank", None, "blank")  # Return a blank mod so functions that rely on this function don't crash
+
 
 def get_list_of_thread_names(parsed_html):
     """
@@ -369,33 +380,37 @@ def get_list_of_thread_names(parsed_html):
     """
     return parsed_html.xpath('.//div[@class="structItem-title"]/*[@data-tp-primary="on"]/text()')
 
+
 def get_list_of_thread_links(parsed_html):
-    #parsed_url = parsed_html.xpath('.//div[@class="structItem-title"]/*[@data-tp-primary="on"]/@href')
+    # parsed_url = parsed_html.xpath('.//div[@class="structItem-title"]/*[@data-tp-primary="on"]/@href')
     return parsed_html.xpath('.//div[@class="structItem-title"]/*[@data-tp-primary="on"]/@href')
+
 
 def download_mod(base_path, download_url):
     # TODO: apparently https://.../download isn't the actual download URL! It crashes this function.
     # Guarantee downloads directory
     if not os.path.isdir(base_path):
         os.makedirs(base_path)
-        
+
     # NOTE the stream=True parameter below
     with requests.get(download_url, stream=True, headers=headers) as r:
         r.raise_for_status()
         # Safeguard in case there's no "Content-Disposition" header
         try:
-            filepath = "{}/{}".format(base_path.rstrip('/'), parse('attachment; filename="{file}"', r.headers["Content-Disposition"])["file"])
-            #filepath = base_path.rstrip('/')+download_url.split('/')[-3]
-            print("Proceeding to download file ", download_url,  "into", filepath)
+            filepath = "{}/{}".format(base_path.rstrip('/'),
+                                      parse('attachment; filename="{file}"', r.headers["Content-Disposition"])["file"])
+            # filepath = base_path.rstrip('/')+download_url.split('/')[-3]
+            print("Proceeding to download file ", download_url, "into", filepath)
             with open(filepath, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     # If you have chunk encoded response uncomment if
                     # and set chunk_size parameter to None.
-                    #if chunk:
+                    # if chunk:
                     f.write(chunk)
         except KeyError as ke:
             return None
     return filepath
+
 
 def extract_mod(filepath):
     extracted_files = []  # full filepaths
